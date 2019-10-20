@@ -37,3 +37,8 @@
 /WebrtcSharp/obj
 /unityplugin/x64
 /WebrtcSharp/WebrtcSharp.csproj.user
+/rtcserver/node_modules
+/rtcclient/node_modules
+/rtcclient/dist/bundle.js
+/RtcCall/bin
+/RtcCall/obj

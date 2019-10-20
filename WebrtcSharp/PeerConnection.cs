@@ -27,16 +27,13 @@ namespace WebrtcSharp
         /// <summary>
         /// 创建Offer
         /// </summary>
-        /// <param name="offer_to_receive_video">offer to receive video</param>
-        /// <param name="offer_to_receive_audio">offer to receive audio</param>
-        /// <param name="voice_activity_detection">voice activity detection</param>
         /// <param name="ice_restart">ice restart</param>
+        /// <param name="voice_activity_detection">voice activity detection</param>
         /// <param name="use_rtp_mux">use rtp mux</param>
         /// <returns>offer 字符串</returns>
-        public async Task<string> CreateOffer(bool offer_to_receive_video = true,
-            bool offer_to_receive_audio = true,
-            bool voice_activity_detection = true,
+        public async Task<string> CreateOffer(
             bool ice_restart = false,
+            bool voice_activity_detection = true,
             bool use_rtp_mux = true)
         {
             var holder = new UnmanageHolder();
@@ -62,8 +59,8 @@ namespace WebrtcSharp
                 PeerConnection_CreateOffer(Handler,
                     done,
                     error,
-                    offer_to_receive_video,
-                    offer_to_receive_audio,
+                    true,
+                    true,
                     voice_activity_detection,
                     ice_restart,
                     use_rtp_mux);
@@ -75,16 +72,13 @@ namespace WebrtcSharp
         /// <summary>
         /// 创建Answer
         /// </summary>
-        /// <param name="offer_to_receive_video">offer to receive video</param>
-        /// <param name="offer_to_receive_audio">offer to receive audio</param>
-        /// <param name="voice_activity_detection">voice activity detection</param>
         /// <param name="ice_restart">ice restart</param>
+        /// <param name="voice_activity_detection">voice activity detection</param>
         /// <param name="use_rtp_mux">use rtp mux</param>
         /// <returns>Answer 字符串</returns>
-        public async Task<string> CreateAnswer(bool offer_to_receive_video = true,
-            bool offer_to_receive_audio = true,
-            bool voice_activity_detection = true,
+        public async Task<string> CreateAnswer(
             bool ice_restart = false,
+            bool voice_activity_detection = true,
             bool use_rtp_mux = true)
         {
             var holder = new UnmanageHolder();
@@ -110,8 +104,8 @@ namespace WebrtcSharp
                 PeerConnection_CreateAnswer(Handler,
                     done,
                     error,
-                    offer_to_receive_video,
-                    offer_to_receive_audio,
+                    true,
+                    true,
                     voice_activity_detection,
                     ice_restart,
                     use_rtp_mux);

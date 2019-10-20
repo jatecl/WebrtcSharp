@@ -24,6 +24,17 @@ namespace WebrtcSharp
             callback(res => task.SetResult(res), err => task.SetException(err));
             return await task.Task;
         }
+        /// <summary>
+        /// 得到一个异步回调，这个回调可能成功，也可能失败
+        /// </summary>
+        /// <param name="callback">异步回调</param>
+        /// <returns></returns>
+        public static async Task<T> Await(Action<Action<T>> callback)
+        {
+            var task = new TaskCompletionSource<T>();
+            callback(res => task.SetResult(res));
+            return await task.Task;
+        }
     }
 
     /// <summary>
@@ -41,6 +52,17 @@ namespace WebrtcSharp
         {
             var task = new TaskCompletionSource<object>();
             callback(() => task.SetResult(null), err => task.SetException(err));
+            await task.Task;
+        }
+        /// <summary>
+        /// 得到一个异步回调，这个回调可能成功，也可能失败
+        /// </summary>
+        /// <param name="callback">异步回调</param>
+        /// <returns></returns>
+        public static async Task Await(Action<Action> callback)
+        {
+            var task = new TaskCompletionSource<object>();
+            callback(() => task.SetResult(null));
             await task.Task;
         }
     }

@@ -1,0 +1,43 @@
+.abs {
+    position: absolute;
+}
+
+.rela {
+    position: relative;
+}
+
+.center,
+.centerb {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%)
+}
+
+.centerb {
+    top: auto;
+    bottom: 50%;
+}
+
+.full, .hfull, .vfull {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+}
+
+.hfull, .hbox, .vbox {
+    display: flex;
+    flex-direction: row;
+}
+
+.vfull {
+    display: flex;
+    flex-direction: column;
+}
+
+.fbox, .hbox, .vbox {
+    flex: 1
+}
