@@ -42,3 +42,5 @@
 /rtcclient/dist/bundle.js
 /RtcCall/bin
 /RtcCall/obj
+/rtcserver/package-lock.json
+/rtcclient/package-lock.json
