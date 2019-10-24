@@ -8,22 +8,22 @@
         /// <summary>
         /// 分辨率宽度
         /// </summary>
-        public int Width { get; internal set; }
+        public int Width { get; set; }
         /// <summary>
         /// 分辨率高度
         /// </summary>
-        public int Height { get; internal set; }
+        public int Height { get; set; }
         /// <summary>
         /// 帧率
         /// </summary>
-        public int Fps { get; internal set; }
+        public int Fps { get; set; }
         /// <summary>
         /// 视频类型
         /// </summary>
-        public VideoType VideoType { get; internal set; }
+        public VideoType VideoType { get; set; }
         /// <summary>
         /// Interlaced
         /// </summary>
-        public bool Interlaced { get; internal set; }
+        public bool Interlaced { get; set; }
     }
 }

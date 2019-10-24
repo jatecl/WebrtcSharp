@@ -6,7 +6,7 @@ namespace Relywisdom
     /**
      * 多媒体源
      */
-    public class LocalMedia : EventEmitter
+    public class LocalMedia : EventEmitter, System.IDisposable
     {
         public LocalMedia(ILocalMediaSource video, ILocalMediaSource audio)
         {
@@ -43,6 +43,11 @@ namespace Relywisdom
         private void _mediaChanged(ILocalMediaSource source)
         {
             this.emit("changed", source);
+        }
+
+        public void Dispose()
+        {
+            foreach (var key in this.all.Keys) this.all[key].Dispose();
         }
     }
 }

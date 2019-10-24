@@ -8,7 +8,7 @@ depot_tools的PATH变量要在python的前面。（注意，系统path在用户path的前面）
 如果有报字符集错误，找到脚本对应的位置修改字符集即可。
 
 设置系统变量
-DEPOT_TOOLS_WIN_TOOLCHAIN=0
+set DEPOT_TOOLS_WIN_TOOLCHAIN=0
 
 设置系统代理，地址和端口号按实际的来
 set http_proxy=127.0.0.1:53374
@@ -18,8 +18,8 @@ git config --global http.proxy 127.0.0.1:53374
 git config --global https.proxy 127.0.0.1:53374
 
 设置git
-git config --global user.name "Jat Zhang"
-git config --global user.email "jatoanw@qq.com"
+git config --global user.name "my name"
+git config --global user.email "my_email@address"
 git config --global core.autocrlf false
 git config --global core.filemode false
 git config --global branch.autosetupmerge always
@@ -36,10 +36,10 @@ cd webrtc
 fetch --nohooks webrtc
 gclient sync
 
-然后拉取目标版本（目前使用m75）
+然后拉取目标版本（目前使用m76）
 cd src
-git checkout branch-heads/m75
-git pull origin branch-heads/m75
+git checkout branch-heads/m76
+git pull origin branch-heads/m76
 gclient sync
 
 建立Release项目文件：

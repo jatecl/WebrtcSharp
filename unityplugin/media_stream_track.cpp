@@ -28,7 +28,7 @@ void VideoObserver::OnFrame(const webrtc::VideoFrame& frame)
 	}
 	else {
 		// The buffer has alpha channel.
-		webrtc::I420ABufferInterface* i420a_buffer = buffer->GetI420A();
+		const webrtc::I420ABufferInterface* i420a_buffer = buffer->GetI420A();
 
 		ptrs[0] = (void*)i420a_buffer->DataY();
 		ptrs[1] = (void*)i420a_buffer->DataU();
@@ -143,9 +143,9 @@ void* MediaStreamTrack_GetKind(void* ptr)
 {
 	auto track = (webrtc::MediaStreamTrackInterface*)(ptr);
 	auto kind = track->kind();
-	auto obj = new StringBuffer(1);
+	auto obj = new BytesBuffer(1);
 	*obj->pointer = new char[kind.length() + 1];
-	strcpy(*obj->pointer, kind.c_str());
+	strcpy((char*)*obj->pointer, kind.c_str());
 	obj->AddRef();
 	return obj;
 }

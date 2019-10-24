@@ -8,16 +8,16 @@ void WebrtcObject_delete(void* ptr)
 	obj->Release();
 }
 
-void* StringBuffer_GetBuffer(void* ptr)
+void* PointerArray_GetBuffer(void* ptr)
 {
-	auto typed = (StringBuffer*)(ptr);
+	auto typed = (BytesBuffer*)(ptr);
 	return typed->pointer;
 }
 
 void* PeerConnectionFactory_GetDeviceInfo() {
 	auto info = webrtc::VideoCaptureFactory::CreateDeviceInfo();
 	auto count = info->NumberOfDevices();
-	auto buffer = new StringBuffer(count * 4);
+	auto buffer = new BytesBuffer(count * 4);
 	auto ptrs = buffer->pointer;
 	for (int i = 0; i < count; ++i) {
 		int len = 128;
@@ -55,7 +55,7 @@ void* PeerConnectionFactory_GetDeviceCapabilities(int index) {
 	info->GetDeviceName(index, name, len, id, len);
 
 	auto size = info->NumberOfCapabilities(id);
-	auto buffer = new StringBuffer(size);
+	auto buffer = new BytesBuffer(size);
 	auto ptrs = buffer->pointer;
 	webrtc::VideoCaptureCapability capability;
 	for (int i = 0; i < size; ++i) {
@@ -70,7 +70,7 @@ void* PeerConnectionFactory_GetDeviceCapabilities(int index) {
 		++cap;
 		*cap = (int32_t)capability.videoType;
 		++cap;
-		*cap = capability.interlaced;
+		*cap = (int32_t)capability.interlaced;
 		++cap;
 		*ptrs = ca;
 		++ptrs;
@@ -84,18 +84,23 @@ void* PeerConnectionFactory_GetDeviceCapabilities(int index) {
 	return buffer;
 }
 
-StringBuffer::StringBuffer(int length)
+BytesBuffer::~BytesBuffer()
 {
-	pointer = new char* [length + 1];
-	pointer[length] = nullptr;
-}
-
-StringBuffer::~StringBuffer()
-{
-	char** it = pointer;
+	char** it = (char**)pointer;
 	while (*it) {
 		delete[](*it);
 		++it;
 	}
+	PointerArray::~PointerArray();
+}
+
+PointerArray::PointerArray(int length)
+{
+	pointer = new void* [length + 1];
+	pointer[length] = nullptr;
+}
+
+PointerArray::~PointerArray()
+{
 	delete[] pointer;
 }

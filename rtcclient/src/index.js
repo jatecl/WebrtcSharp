@@ -3,7 +3,6 @@ import ReactDOM from "react-dom";
 import { HashRouter, Route, Link } from "react-router-dom";
 import { ScreenSharePage, CreateScreenSharePage } from "./screenSharePage";
 import { RtcCallPage, CreateCallPage } from "./rtcCallPage";
-import { RtcLivePage, CreateLivePage } from "./rtcLivePage";
 
 /**
  * 主页配置
@@ -30,9 +29,6 @@ class StartUpPage extends React.Component {
                             <li className="nav-item">
                                 <Link className="nav-link" to="/share">屏幕分享</Link>
                             </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/live">播放rtsp视频</Link>
-                            </li>
                         </ul>
                     </div>
                 </nav>
@@ -42,8 +38,6 @@ class StartUpPage extends React.Component {
                     <Route path="/call/:id/:type" component={RtcCallPage} />
                     <Route path="/share" exact component={CreateScreenSharePage} />
                     <Route path="/share/:action/:id" component={ScreenSharePage} />
-                    <Route path="/live" exact component={CreateLivePage} />
-                    <Route path="/live/:id/:type" component={RtcLivePage} />
                 </div>
             </div>
         </HashRouter>

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Relywisdom
 {
@@ -40,9 +42,17 @@ namespace Relywisdom
             this.socket.on("changed", this._socketchanged);
             this.local.on("changed", this._localChanged);
         }
+
+        public event Action<Dictionary<string, object>, RemoteMedia> Query;
+
+        internal void emitQuery(Dictionary<string, object> query, RemoteMedia remote)
+        {
+            Query?.Invoke(query, remote);
+        }
+
         /**
-         * 状态改变时发生
-         */
+* 状态改变时发生
+*/
         private void _socketchanged()
         {
             this._canbejoin = false;
@@ -78,7 +88,7 @@ namespace Relywisdom
          * 加入房间
          * @param {String} id 房间id
          */
-        private bool join(string id)
+        public bool join(string id)
         {
             if (this.rooms.ContainsKey(id)) return false;
             this.rooms.Add(id, true);
@@ -157,7 +167,7 @@ namespace Relywisdom
                 if (now != null) now.close();
                 now = new RemoteMedia(master, this, from, version, info);
                 this.remotes[from] = now;
-                now.connect();
+                Task.Factory.StartNew(now.connect);
                 this.emit("call", now);
             }
         }

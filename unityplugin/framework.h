@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#define WIN32_LEAN_AND_MEAN             // 从 Windows 头文件中排除极少使用的内容
+#define WIN32_LEAN_AND_MEAN
 // Windows 头文件
 #include <Windows.h>
 
@@ -44,22 +44,30 @@ extern "C" {
 	//删除对象引用
 	__declspec(dllexport) void WebrtcObject_delete(void* ptr);
 	//返回字节数组的指针
-	__declspec(dllexport) void* StringBuffer_GetBuffer(void* ptr);
+	__declspec(dllexport) void* PointerArray_GetBuffer(void* ptr);
 	//拉取视频设备信息
 	__declspec(dllexport) void* PeerConnectionFactory_GetDeviceInfo();
 	//拉取某个视频设备支持的分辨率列表
 	__declspec(dllexport) void* PeerConnectionFactory_GetDeviceCapabilities(int index);
 }
 
-//字节数组持有者
-class StringBuffer : public rtc::RefCountedObject<rtc::RefCountInterface> {
+class PointerArray : public rtc::RefCountedObject<rtc::RefCountInterface> {
 public:
 	//字节数组
-	char** pointer;
+	void** pointer;
 	//生成一个新的字节数组
-	StringBuffer(int length);
+	PointerArray(int length);
 	//销毁字节数组
-	~StringBuffer();
+	virtual ~PointerArray();
+};
+
+//字节数组持有者
+class BytesBuffer : public PointerArray {
+public:
+	//生成一个新的字节数组
+	BytesBuffer(int length) : PointerArray(length) { }
+	//销毁字节数组
+	virtual ~BytesBuffer();
 };
 
 //结构体持有者

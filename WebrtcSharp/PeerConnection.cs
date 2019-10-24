@@ -190,9 +190,29 @@ namespace WebrtcSharp
         public RtcSender AddTrack(MediaStreamTrack track, string[] labels)
         {
             var handler = PeerConnection_AddTrack(Handler, track.Handler, labels, labels.Length);
-            var sender = Create<RtcSender>(handler);
+            var sender = Create<RtcSender>(handler, true);
             if (sender != null) sender.Track = track;
             return sender;
+        }
+        /// <summary>
+        /// 获取所有发送器
+        /// </summary>
+        /// <returns></returns>
+        public unsafe RtcSender[] GetSenders()
+        {
+            var ptrList = PeerConnection_GetSenders(this.Handler);
+            var list = Create<PointerArray>(ptrList);
+            var items = list.GetBuffer();
+
+            var ret = new List<RtcSender>();
+            while (*items != null)
+            {
+                IntPtr senderPtr = new IntPtr(*items);
+                var sender = Create<RtcSender>(senderPtr, true);
+                if (sender != null) ret.Add(sender);
+                ++items;
+            }
+            return ret.ToArray();
         }
         /// <summary>
         /// 移除媒体轨道
@@ -330,5 +350,12 @@ namespace WebrtcSharp
         /// <returns>错误信息的字符串</returns>
         [DllImport(UnityPluginDll)]
         internal static extern string PeerConnection_RemoveTrack(IntPtr ptr, IntPtr sender);
+        /// <summary>
+        /// 获得所有发送器
+        /// </summary>
+        /// <param name="ptr">发送器列表指针</param>
+        /// <returns></returns>
+        [DllImport(UnityPluginDll)]
+        internal static extern IntPtr PeerConnection_GetSenders(IntPtr ptr);
     }
 }

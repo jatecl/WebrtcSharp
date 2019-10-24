@@ -69,10 +69,6 @@ namespace Relywisdom
         /// P2P事件监听
         /// </summary>
         private PeerConnectionObserve observe;
-        /// <summary>
-        /// 所有的发送流
-        /// </summary>
-        private List<RtcSender> senders = new List<RtcSender>();
         /**
          * 创建一个P2P连接
          * @param {RemoteMedia}} remote 远程媒体
@@ -85,6 +81,7 @@ namespace Relywisdom
             {
                 config.AddServer(c.urls, c.username, c.credential);
             }
+            observe = new PeerConnectionObserve();
             this.connection = RtcNavigator.createPeerConnection(config, observe);
             //当需要发送candidate的时候
             this.observe.IceCandidate += evt =>
@@ -126,17 +123,41 @@ namespace Relywisdom
                     case IceConnectionState.Failed:
                     case IceConnectionState.Disconnected:
                     case IceConnectionState.Closed:
-                        this._candidates = new List<IceCandidate>();
+                        if (this._candidates == null || this._candidates.Count > 0)
+                        {
+                            this._candidates = new List<IceCandidate>();
+                        }
                         break;
                 }
-                this.emit("statechanged", state);
-                this.emit("state_" + state);
+                var name = GetIceConnectionName(state);
+                this.emit("statechanged", name);
+                this.emit("state_" + name);
             };
             //检查超时
             this._timer = Timeout.setTimeout(this._timeoutchecker, 10000);
             this.once("statechanged", this._clearchecker);
             //初始化状态
             this.resetState(true);
+        }
+        /// <summary>
+        /// 状态转换为标准字符串
+        /// </summary>
+        /// <param name="state">状态</param>
+        /// <returns></returns>
+        private static string GetIceConnectionName(IceConnectionState state)
+        {
+            switch (state)
+            {
+                case IceConnectionState.New: return "new";
+                case IceConnectionState.Connected: return "connected";
+                case IceConnectionState.Completed: return "completed";
+                case IceConnectionState.Failed: return "failed";
+                case IceConnectionState.Disconnected: return "disconnected";
+                case IceConnectionState.Closed: return "closed";
+                case IceConnectionState.Max: return "max";
+                case IceConnectionState.Checking: return "checking";
+            }
+            return "unkown";
         }
         /**
          * 初始化状态
@@ -228,9 +249,8 @@ namespace Relywisdom
          * 创建offer
          * @param {Object} query 对方要求
          */
-        public async Task<object> createOffer(Dictionary<string, object> query)
+        public async Task<object> createOffer()
         {
-            await this._addTracks(query);
             var offer = await this.connection.CreateOffer(ice_restart: true);
             if (offer == null) throw new Exception("创建offer失败");
             await this.connection.SetLocalDescription("offer", offer);
@@ -239,12 +259,10 @@ namespace Relywisdom
         }
         /**
          * 创建answer
-         * @param {Object} msg 对方消息，包含对方要求和对方offer
+         * @param {Object} json 对方offer
          */
-        public async Task<object> createAnswer(Dictionary<string, object> msg)
+        public async Task<object> createAnswer(Dictionary<string, object> json)
         {
-            await this._addTracks(msg.Get<Dictionary<string, object>>("query"));
-            var json = msg.Get<Dictionary<string, object>>("offer");
             await this.connection.SetRemoteDescription(json.Get<string>("type"), json.Get<string>("sdp"));
             var answer = await this.connection.CreateAnswer();
             if (answer == null) throw new Exception("创建answer失败");
@@ -264,11 +282,13 @@ namespace Relywisdom
          * 根据对方要求和自己的实际情况设置要发送的媒体
          * @param {Object} query 对方要求
          */
-        public async Task _addTracks(Dictionary<string, object> query)
+        public async Task<Dictionary<string, object>> setLocalMedia(Dictionary<string, object> query)
         {
+            Dictionary<string, object> ret = new Dictionary<string, object>();
+            var senders = this.connection.GetSenders();
             foreach (var key in this.local.all)
             {
-                var exists = senders.Where(sd => sd.Track.Kind == key.Key).ToArray();
+                var exists = senders.Where(sd => sd != null && sd.Track.Kind == key.Key).ToArray();
                 if (null == query || query.Get<bool>(key.Key))
                 {
                     var track = await this.local.all[key.Key].getTrack();
@@ -284,9 +304,9 @@ namespace Relywisdom
                         }
                         else
                         {
-                            var sender = this.connection.AddTrack(track, new[] { key.Key });
-                            senders.Add(sender);
+                            this.connection.AddTrack(track, new[] { key.Key });
                         }
+                        ret[key.Key] = true;
                         //如果已经设置或者替换，就继续
                         continue;
                     }
@@ -294,9 +314,9 @@ namespace Relywisdom
                 foreach (var sender in exists)
                 {
                     this.connection.RemoveTrack(sender);
-                    this.senders.RemoveAll(s => s == sender);
                 }
             }
+            return ret;
         }
 
         /**
@@ -307,4 +327,6 @@ namespace Relywisdom
             this.connection.Close();
         }
     }
+
+
 }

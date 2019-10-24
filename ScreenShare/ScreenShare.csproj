@@ -4,16 +4,32 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7831D71C-7ABE-4D0F-A8BD-715D373A6B20}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Relywisdom</RootNamespace>
-    <AssemblyName>RtcCall</AssemblyName>
+    <ProjectGuid>{D83D9443-F210-43D6-867E-308D5F7813F4}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ScreenShare</RootNamespace>
+    <AssemblyName>ScreenShare</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -21,8 +37,10 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -33,52 +51,44 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="websocket-sharp, Version=1.0.2.59611, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
-      <HintPath>..\packages\WebSocketSharp.1.0.3-rc11\lib\websocket-sharp.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConnectionMedia.cs" />
-    <Compile Include="ConnectionOffer.cs" />
-    <Compile Include="ConnectionQuery.cs" />
-    <Compile Include="IConnectionState.cs" />
-    <Compile Include="ConnectionWaitForQuery.cs" />
-    <Compile Include="EventEmitter.cs" />
-    <Compile Include="LocalMedia.cs" />
-    <Compile Include="LocalMediaSource.cs" />
-    <Compile Include="MediaConnection.cs" />
-    <Compile Include="MediaStream.cs" />
-    <Compile Include="IMessageFilter.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RemoteMedia.cs" />
-    <Compile Include="RtcCall.cs" />
-    <Compile Include="RtcIceServer.cs" />
-    <Compile Include="ILocalMediaSource.cs" />
-    <Compile Include="RtcNavigator.cs" />
-    <Compile Include="RtcSocket.cs" />
-    <Compile Include="RtcSocketConnected.cs" />
-    <Compile Include="RtcSocketConnecting.cs" />
-    <Compile Include="RtcSocketLogin.cs" />
-    <Compile Include="RtcSocketState.cs" />
-    <Compile Include="RtcSocketStoped.cs" />
-    <Compile Include="Timeout.cs" />
-    <Compile Include="WebSocket.cs" />
+    <Compile Include="ScreenSource.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RtcCall\RtcCall.csproj">
+      <Project>{7831d71c-7abe-4d0f-a8bd-715d373a6b20}</Project>
+      <Name>RtcCall</Name>
+    </ProjectReference>
     <ProjectReference Include="..\WebrtcSharp\WebrtcSharp.csproj">
       <Project>{65bd845e-f4d5-4ec9-bad6-9a207bc1313b}</Project>
       <Name>WebrtcSharp</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.6.1 %28x86 和 x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

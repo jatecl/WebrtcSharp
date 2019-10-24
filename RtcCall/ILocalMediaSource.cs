@@ -6,7 +6,7 @@ namespace Relywisdom
     /**
      * 某种类型的媒体流来源
      */
-    public abstract class ILocalMediaSource : EventEmitter
+    public abstract class ILocalMediaSource : EventEmitter, System.IDisposable
     {
         public ILocalMediaSource(string kind)
         {
@@ -73,5 +73,10 @@ namespace Relywisdom
          * 是否可用
          */
         public abstract Task<bool> usable();
+
+        public virtual void Dispose()
+        {
+            this._justClose(true);
+        }
     }
 }

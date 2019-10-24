@@ -884,8 +884,7 @@ class MediaConnection extends EventEmitter {
      * 创建offer
      * @param {Object} query 对方要求
      */
-    async createOffer(query) {
-        await this._addTracks(query);
+    async createOffer() {
         let offer = await this.connection.createOffer({ iceRestart: true });
         if (!offer) throw new Error("创建offer失败");
         await this.connection.setLocalDescription(offer);
@@ -894,11 +893,10 @@ class MediaConnection extends EventEmitter {
     }
     /**
      * 创建answer
-     * @param {Object} msg 对方消息，包含对方要求和对方offer
+     * @param {Object} offer 对方offer
      */
-    async createAnswer(msg) {
-        await this._addTracks(msg.query);
-        await this.connection.setRemoteDescription(new RTCSessionDescription(msg.offer));
+    async createAnswer(offer) {
+        await this.connection.setRemoteDescription(new RTCSessionDescription(offer));
         let answer = await this.connection.createAnswer();
         if (!answer) throw new Error("创建answer失败");
         await this.connection.setLocalDescription(answer);
@@ -916,7 +914,8 @@ class MediaConnection extends EventEmitter {
      * 根据对方要求和自己的实际情况设置要发送的媒体
      * @param {Object} query 对方要求
      */
-    async _addTracks(query) {
+    async setLocalMedia(query) {
+        let ret = {};
         //如果支持新的api
         if (this.connection.getSenders) {
             let senders = this.connection.getSenders();
@@ -935,6 +934,7 @@ class MediaConnection extends EventEmitter {
                             if (firefox) this.connection.addTrack(track, track._stream);
                             else this.connection.addTrack(track);
                         }
+                        ret[key] = true;
                         //如果已经设置或者替换，就继续
                         continue;
                     }
@@ -958,8 +958,10 @@ class MediaConnection extends EventEmitter {
                 var stream = new MediaStream();
                 stream.addTrack(track);
                 this.connection.addStream(stream);
+                ret[key] = true;
             }
         }
+        return ret;
     }
     /**
      * 关闭P2P连接
@@ -971,7 +973,7 @@ class MediaConnection extends EventEmitter {
 /**
  * 连接状态
  */
-class ConnectionState {
+class IConnectionState {
     /**
      * P2P连接
      */
@@ -1032,16 +1034,18 @@ class ConnectionWaitForQuery {
      * 收到消息
      * @param {Object} msg 消息
      */
-    onmessage(msg) {
+    async onmessage(msg) {
         if (msg.action == "query") {
-            this.connection.setState(new ConnectionOffer(msg.query));
+            let media = await this.connection.setLocalMedia(msg.query);
+            if (!media.video || !media.audio) this.connection.setState(new ConnectionMedia(media));
+            else this.connection.setState(new ConnectionOffer());
         }
     }
 }
 /**
- * 发送查询并等待offer的状态
+ * 发送查询并等待query和media的状态
  */
-class ConnectionQuery extends ConnectionState {
+class ConnectionQuery extends IConnectionState {
     /**
      * 创建状态
      * @param {Boolean} clear 是否设置超时
@@ -1069,8 +1073,20 @@ class ConnectionQuery extends ConnectionState {
      * @param {Object} msg 消息
      */
     async onmessage(msg) {
-        if (msg.action == "offer") {
-            let answer = await this.connection.createAnswer(msg);
+        if (msg.action == "media") {
+            let media = await this.connection.setLocalMedia(msg.query);
+            let rm = msg.media;
+            if (media.video || (media.audio && !rm.video)) this.connection.setState(new ConnectionOffer());
+            else {
+                this.socket.send({
+                    kind: "webrtc",
+                    action: "require",
+                    to: this.remote.id
+                });
+            }
+        }
+        else if (msg.action == "offer") {
+            let answer = await this.connection.createAnswer(msg.offer);
             this.socket.send({
                 kind: "webrtc",
                 action: "answer",
@@ -1082,34 +1098,60 @@ class ConnectionQuery extends ConnectionState {
     }
 }
 /**
- * 接收查询，并发送查询与offer然后等待answer
+ * 
  */
-class ConnectionOffer extends ConnectionState {
-    /**
-     * 创建状态
-     * @param {Object} query 对方的查询
-     */
-    constructor(query) {
+class ConnectionMedia extends IConnectionState {
+    constructor(media) {
         super();
-        this.query = query;
+        this.media = media;
+    }
+    media;
+    start() {
+        super.start();
+        let query = {};
+        this.call.emit("query", query, this.remote);
+        this.socket.send({
+            kind: "webrtc",
+            action: "media",
+            to: this.remote.id,
+            media: this.media,
+            query,
+        });
     }
     /**
-     * 对方查询
+     * 收到消息
+     * @param {Object} msg 消息
      */
-    query;
+    async onmessage(msg) {
+        if (msg.action == "offer") {
+            let answer = await this.connection.createAnswer(msg.offer);
+            this.socket.send({
+                kind: "webrtc",
+                action: "answer",
+                to: this.remote.id,
+                answer
+            });
+            this.connection.setState(new ConnectionWaitForQuery());
+        }
+        else if (msg.action == "require") {
+            this.connection.setState(new ConnectionOffer());
+        }
+    }
+}
+/**
+ * 接收查询，并发送查询与offer然后等待answer
+ */
+class ConnectionOffer extends IConnectionState {
     /**
      * 初始化
      */
     async start() {
         super.start();
-        let offer = await this.connection.createOffer(this.query);
-        let query = {};
-        this.call.emit("query", query, this.remote);
+        let offer = await this.connection.createOffer();
         this.socket.send({
             kind: "webrtc",
             action: "offer",
             to: this.remote.id,
-            query,
             offer
         });
     }

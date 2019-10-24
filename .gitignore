@@ -44,3 +44,5 @@
 /RtcCall/obj
 /rtcserver/package-lock.json
 /rtcclient/package-lock.json
+/ScreenShare/bin
+/ScreenShare/obj

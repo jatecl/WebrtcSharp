@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Relywisdom
 {
@@ -19,7 +20,11 @@ namespace Relywisdom
         {
             if (msg.Get<string>("action") == "query")
             {
-                this.connection.setState(new ConnectionOffer(msg.Get<Dictionary<string, object>>("query")));
+                Task.Factory.StartNew(async () => {
+                    var media = await this.connection.setLocalMedia(msg.Get<Dictionary<string, object>>("query"));
+                    if (!media.Get<bool>("video") || !media.Get<bool>("audio")) this.connection.setState(new ConnectionMedia(media));
+                    else this.connection.setState(new ConnectionOffer());
+                });
             }
         }
     }

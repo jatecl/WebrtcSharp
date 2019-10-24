@@ -52,10 +52,10 @@ private:
 class CapturerTrackSource : public webrtc::VideoTrackSource {
 public:
 	static rtc::scoped_refptr<CapturerTrackSource> Create(
-		const size_t kDeviceIndex = 0,
-		const size_t kWidth = 640,
-		const size_t kHeight = 480,
-		const size_t kFps = 30) {
+		const size_t kDeviceIndex,
+		const size_t kWidth,
+		const size_t kHeight,
+		const size_t kFps) {
 		std::unique_ptr<SampleVcmCapturer> capturer = absl::WrapUnique(
 			SampleVcmCapturer::Create(kWidth, kHeight, kFps, kDeviceIndex));
 		if (!capturer) {
@@ -79,9 +79,9 @@ private:
 void* PeerConnectionFactory_new()
 {
 	auto ptr = new PeerConnectionFactoryPointer();
-	ptr->worker_thread.reset(new rtc::Thread());
+	ptr->worker_thread = rtc::Thread::CreateWithSocketServer();
 	ptr->worker_thread->Start();
-	ptr->signaling_thread.reset(new rtc::Thread());
+	ptr->signaling_thread = rtc::Thread::CreateWithSocketServer();
 	ptr->signaling_thread->Start();
 
 	ptr->factory = webrtc::CreatePeerConnectionFactory(
@@ -109,7 +109,7 @@ void* PeerConnectionFactory_CreatePeerConnection(void* ptr, void* config, void* 
 	auto peer_connection = factory->factory->CreatePeerConnection(
 		config_ptr->data, nullptr, nullptr, observe_ptr);
 	if (!peer_connection.get()) return nullptr;
-
+	
 	peer_connection->AddRef();
 	return peer_connection;
 }

@@ -71,6 +71,8 @@
     <Compile Include="FrameVideoSource.cs" />
     <Compile Include="IceCandidate.cs" />
     <Compile Include="RtpReceiver.cs" />
+    <Compile Include="PointerArray.cs" />
+    <Compile Include="UnmanageHolder.cs" />
     <Compile Include="VideoDeviceCapabilities.cs" />
     <Compile Include="VideoDeviceInfo.cs" />
     <Compile Include="VideoSource.cs" />

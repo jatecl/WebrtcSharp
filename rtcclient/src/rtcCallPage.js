@@ -23,9 +23,7 @@ export class RtcCallPage extends React.Component {
             });
         this.media = new LocalMedia();
         this.call = new RtcCall(this.socket, this.media, [{
-                urls: "turn:ice.relywisdom.com:3478",
-                credential: "dicrecord",
-                username: "dicrecord"
+                urls: "stun:stun.l.google.com:19302"
             }]);
         this.call.on("query", (query, info) => {
             query.video = true;

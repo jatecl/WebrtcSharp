@@ -177,8 +177,13 @@ namespace WebrtcSharp
             set
             {
                 MediaStreamTrack_SetEnabled(Handler, value);
+                EnabledChanged?.Invoke(this, value);
             }
         }
+        /// <summary>
+        /// 可用状态发生变化时
+        /// </summary>
+        public event Action<MediaStreamTrack, bool> EnabledChanged;
         /// <summary>
         /// 轨道是否已结束
         /// </summary>

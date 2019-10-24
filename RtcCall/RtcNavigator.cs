@@ -32,7 +32,19 @@ namespace Relywisdom
         /// <returns></returns>
         public static MediaStreamTrack createVideoTrack(string source)
         {
-            return createVideoTrack(createVideoSource(source, 640, 480, 30) ?? new FrameVideoSource());
+            var index = GetVideoIndexByName(source);
+            var caps = PeerConnectionFactory.GetDeviceCapabilities(index);
+            var matchs = caps.Where(c => c.VideoType == VideoType.I420).ToArray();
+            if (matchs.Length > 0) caps = matchs;
+            VideoDeviceCapabilities cap = null;
+            if (caps.Length > 0) cap = caps[0];
+            else cap = new VideoDeviceCapabilities
+                {
+                    Width = 640,
+                    Height = 480,
+                    Fps = 30
+                };
+            return createVideoTrack(createVideoSource(source, cap.Width - 1, cap.Height - 1, 15) ?? new FrameVideoSource());
         }
 
         /// <summary>
@@ -104,11 +116,19 @@ namespace Relywisdom
         public static VideoSource createVideoSource(string name, int width, int height, int fps)
         {
             var index = GetVideoIndexByName(name);
+            /*
             var caps = PeerConnectionFactory.GetDeviceCapabilities(index);
+            caps = caps.OrderBy(c => c.Width * c.Height).ToArray();
             foreach (var c in caps)
             {
-
+                if (c.Width >= width || c.Height >= height) {
+                    width = c.Width;
+                    height = c.Height;
+                    fps = c.Fps;
+                    break;
+                }
             }
+            */
             return Facotry.CreateVideoSource(index, width, height, fps);
         }
 

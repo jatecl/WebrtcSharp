@@ -69,10 +69,10 @@ namespace WebrtcSharp
         {
             var track = RtpReceiver_GetMediaStreamTrack(handler);
             var proxyPtr = MediaStreamTrack.MediaStreamTrack_GetKind(track);
-            var buffer = Create<StringBuffer>(proxyPtr);
+            var buffer = Create<PointerArray>(proxyPtr);
             unsafe
             {
-                byte** pointer = buffer.GetBuffer();
+                byte** pointer = (byte**)buffer.GetBuffer();
                 var kind = new string((sbyte*)*pointer);
                 if (kind == "video") Track = Create<VideoTrack>(track);
                 else if (kind == "audio") Track = Create<AudioTrack>(track);

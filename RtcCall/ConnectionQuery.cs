@@ -23,7 +23,7 @@ namespace Relywisdom
         {
             base.start();
             var query = new Dictionary<string, object>();
-            this.call.emit("query", query, this.remote);
+            this.call.emitQuery(query, this.remote);
             this.socket.send(new
             {
                 kind = "webrtc",
@@ -38,23 +38,36 @@ namespace Relywisdom
          */
         public override void onmessage(Dictionary<string, object> msg)
         {
-            if (msg.Get<string>("action") == "offer")
+            Task.Factory.StartNew(async () =>
             {
-                var task = _sendAnswer(msg);
-            }
-        }
-
-        private async Task _sendAnswer(Dictionary<string, object> msg)
-        {
-            var answer = await this.connection.createAnswer(msg);
-            this.socket.send(new
-            {
-                kind = "webrtc",
-                action = "answer",
-                to = this.remote.id,
-                answer
+                if (msg.Get<string>("action") == "media")
+                {
+                    var media = await this.connection.setLocalMedia(msg.Get<Dictionary<string, object>>("query"));
+                    var rm = msg.Get<Dictionary<string, object>>("media");
+                    if (media.Get<bool>("video") || (media.Get<bool>("audio") && !rm.Get<bool>("video"))) this.connection.setState(new ConnectionOffer());
+                    else
+                    {
+                        this.socket.send(new
+                        {
+                            kind = "webrtc",
+                            action = "require",
+                            to = this.remote.id
+                        });
+                    }
+                }
+                else if (msg.Get<string>("action") == "offer")
+                {
+                    var answer = await this.connection.createAnswer(msg);
+                    this.socket.send(new
+                    {
+                        kind = "webrtc",
+                        action = "answer",
+                        to = this.remote.id,
+                        answer
+                    });
+                    this.connection.setState(new ConnectionWaitForQuery());
+                }
             });
-            this.connection.setState(new ConnectionWaitForQuery());
         }
     }
 }

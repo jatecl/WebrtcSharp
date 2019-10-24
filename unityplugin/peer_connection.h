@@ -81,4 +81,5 @@ extern "C" {
 		int len);
 	__declspec(dllexport) void* PeerConnection_RemoveTrack(void* ptr,
 		void* sender);
+	__declspec(dllexport) void* PeerConnection_GetSenders(void* ptr);
 }

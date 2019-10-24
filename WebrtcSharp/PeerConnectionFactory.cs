@@ -48,7 +48,6 @@ namespace WebrtcSharp
         {
             try
             {
-                configuration.AddServer("stun:stun.l.google.com:19302");
                 var handle = PeerConnectionFactory_CreatePeerConnection(Handler, configuration.Handler, observe == null ? default : observe.Handler);
                 return Create<PeerConnection>(handle);
             }
@@ -107,8 +106,8 @@ namespace WebrtcSharp
             try
             {
                 var ptrs = PeerConnectionFactory_GetDeviceInfo();
-                var buffer = Create<StringBuffer>(ptrs);
-                byte** pointer = buffer.GetBuffer();
+                var buffer = Create<PointerArray>(ptrs);
+                byte** pointer = (byte**)buffer.GetBuffer();
                 byte** it = pointer;
                 var list = new List<VideoDeviceInfo>();
                 var idx = 0;
@@ -149,13 +148,13 @@ namespace WebrtcSharp
             try
             {
                 var ptrs = PeerConnectionFactory_GetDeviceCapabilities(index);
-                var buffer = Create<StringBuffer>(ptrs);
-                byte** pointer = buffer.GetBuffer();
+                var buffer = Create<PointerArray>(ptrs);
+                byte** pointer = (byte**)buffer.GetBuffer();
                 byte** it = pointer;
                 var list = new List<VideoDeviceCapabilities>();
                 while (*it != null)
                 {
-                    int* info = (int*)it;
+                    int* info = (int*)*it;
                     ++it;
                     int width = *info;
                     ++info;

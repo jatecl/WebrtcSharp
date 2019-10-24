@@ -224,10 +224,20 @@ namespace Relywisdom
             }
             foreach (var listener in list)
             {
-                //var types = listener.GetParameters();
+                var types = listener.GetParameters();
+                var vals = args;
+                if (types.Length != args.Length)
+                {
+                    vals = new object[types.Length];
+                    for (var i = 0; i < vals.Length; ++i)
+                    {
+                        if (i < args.Length) vals[i] = args[i];
+                        else vals[i] = types[i].DefaultValue;
+                    }
+                }
                 if (listener.Count != 0)
                 {
-                    listener.Event.DynamicInvoke(args);
+                    listener.Event.DynamicInvoke(vals);
                 }
                 lock (locker)
                 {

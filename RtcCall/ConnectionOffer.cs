@@ -9,41 +9,23 @@ namespace Relywisdom
     class ConnectionOffer : IConnectionState
     {
         /**
-         * 创建状态
-         * @param {Object} query 对方的查询
-         */
-        public ConnectionOffer(Dictionary<string, object> query)
-        {
-            this.query = query;
-        }
-        /**
-         * 对方查询
-         */
-        private Dictionary<string, object> query;
-        /**
          * 初始化
          */
         public override void start()
         {
             base.start();
-            var task = this.startSendQuery();
-        }
-
-        private async Task startSendQuery()
-        {
-            var offer = await this.connection.createOffer(this.query);
-            var query = new Dictionary<string, object>();
-            this.call.emit("query", query, this.remote);
-            this.socket.send(new
+            Task.Factory.StartNew(async () =>
             {
-                kind = "webrtc",
-                action = "offer",
-                to = this.remote.id,
-                query,
-                offer
+                var offer = await this.connection.createOffer();
+                this.socket.send(new
+                {
+                    kind = "webrtc",
+                    action = "offer",
+                    to = this.remote.id,
+                    offer
+                });
             });
         }
-
         /**
         * 收到消息
         * @param {Object} msg 消息
@@ -52,14 +34,12 @@ namespace Relywisdom
         {
             if (msg.Get<string>("action") == "answer")
             {
-                var task = this._setAnswer(msg.Get<Dictionary<string, object>>("answer"));
+                Task.Factory.StartNew(async () =>
+                {
+                    await this.connection.setAnswer(msg.Get<Dictionary<string, object>>("answer"));
+                    this.connection.setState(new ConnectionWaitForQuery());
+                });
             }
-        }
-
-        private async Task _setAnswer(Dictionary<string, object> answer)
-        {
-            await this.connection.setAnswer(answer);
-            this.connection.setState(new ConnectionWaitForQuery());
         }
     }
 }

@@ -24,6 +24,7 @@ namespace Relywisdom
             {
                 this.socket.setState(new RtcSocketLogin(this.link));
             };
+            this._link.open();
         }
         /**
          * 类型

@@ -137,6 +137,18 @@ void* PeerConnection_RemoveTrack(void* ptr, void* sender)
 	return (void*)error.message();
 }
 
+void* PeerConnection_GetSenders(void* ptr)
+{
+	auto typed = (webrtc::PeerConnectionInterface*)(ptr);
+	auto list = typed->GetSenders();
+	auto ret = new PointerArray(list.size());
+	for (auto i = 0; i < list.size(); ++i) {
+		ret->pointer[i] = list.at(i).get();
+	}
+	ret->AddRef();
+	return ret;
+}
+
 void* PeerConnection_AddDataChannel(void* ptr, const char* label, bool reliable, bool ordered,
 	int maxRetransmitTime, int maxRetransmits, const char* protocol, bool negotiated, int id)
 {
