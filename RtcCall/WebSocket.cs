@@ -32,7 +32,7 @@ namespace Relywisdom
         }
         public void send(string message)
         {
-            Console.WriteLine("发送>>>>:" + message);
+            //Console.WriteLine("发送>>>>:" + message);
             if (ws == null) return;
             if (!ws.IsAlive) return;
             ws.Send(System.Text.Encoding.UTF8.GetBytes(message));
@@ -72,7 +72,7 @@ namespace Relywisdom
         }
         private void Ws_OnMessage(object sender, WebSocketSharp.MessageEventArgs e)
         {
-            Console.WriteLine("收到<<<<:" + e.Data);
+            //Console.WriteLine("收到<<<<:" + e.Data);
             onmessage?.Invoke(e.Data);
         }
     }

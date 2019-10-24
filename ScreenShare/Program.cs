@@ -28,7 +28,7 @@ namespace ScreenShare
                     { "type", "device" }
                 });
 
-            //* 
+            /* 
             var videoSource = new LocalMediaSource("video");
             //screen-capture-recorder无法正常工作
             //videoSource.source = "screen-capture-recorder";

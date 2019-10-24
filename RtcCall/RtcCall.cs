@@ -167,7 +167,7 @@ namespace Relywisdom
                 if (now != null) now.close();
                 now = new RemoteMedia(master, this, from, version, info);
                 this.remotes[from] = now;
-                Task.Factory.StartNew(now.connect);
+                now.connect();
                 this.emit("call", now);
             }
         }

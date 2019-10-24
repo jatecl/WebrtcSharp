@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using WebrtcSharp;
 
@@ -76,12 +77,22 @@ namespace Relywisdom
         /**
          * 连接对方并保持
          */
-        public async Task connect()
+        public void connect()
+        {
+            this.connection = new MediaConnection(this);
+            Task.Factory.StartNew(connectAsync);
+        }
+        /// <summary>
+        /// 连接对方并保持
+        /// </summary>
+        /// <returns></returns>
+        private async Task connectAsync()
         {
             while (this._connecting())
             {
-                this.connection = new MediaConnection(this);
+                if (this.connection == null) this.connection = new MediaConnection(this);
                 await Promise.Await(cs => this.connection.once("state_closed", cs));
+                this.connection = null;
             }
             this.emit("closed");
         }
