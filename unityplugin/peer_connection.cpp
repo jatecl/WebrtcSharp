@@ -149,7 +149,7 @@ void* PeerConnection_GetSenders(void* ptr)
 	return ret;
 }
 
-void* PeerConnection_AddDataChannel(void* ptr, const char* label, bool reliable, bool ordered,
+void* PeerConnection_CreateDataChannel(void* ptr, const char* label, bool reliable, bool ordered,
 	int maxRetransmitTime, int maxRetransmits, const char* protocol, bool negotiated, int id)
 {
 	auto typed = (webrtc::PeerConnectionInterface*)(ptr);
@@ -167,7 +167,13 @@ void* PeerConnection_AddDataChannel(void* ptr, const char* label, bool reliable,
 		return nullptr;
 	}
 	data_channel_->AddRef();
-	return data_channel_;
+	return data_channel_.get();
+}
+
+CreateSessionDescriptionObserverCallback::~CreateSessionDescriptionObserverCallback()
+{
+	Success = nullptr;
+	Failure = nullptr;
 }
 
 void CreateSessionDescriptionObserverCallback::OnSuccess(webrtc::SessionDescriptionInterface* desc)
@@ -186,6 +192,12 @@ void CreateSessionDescriptionObserverCallback::OnFailure(webrtc::RTCError error)
 void CreateSessionDescriptionObserverCallback::OnFailure(const std::string& error)
 {
 	if (Failure) Failure((void*)error.c_str());
+}
+
+SetSessionDescriptionObserverCallback::~SetSessionDescriptionObserverCallback()
+{
+	Success = nullptr;
+	Failure = nullptr;
 }
 
 void SetSessionDescriptionObserverCallback::OnSuccess()

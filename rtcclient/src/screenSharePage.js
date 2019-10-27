@@ -21,21 +21,30 @@ export class ScreenSharePage extends React.Component {
                 type: create ? "device" : "web"
             });
         this.media = new LocalMedia();
-        this.call = new RtcCall(this.socket, this.media, [{
-                urls: "stun:stun.l.google.com:19302"
-            }]);
-        this.call.on("query", (query, info) => {
+        this.call = new RtcCall([{
+            urls: "stun:stun.l.google.com:19302"
+        }], this.socket, this.media); 
+        this.call.on("query", (query, remote) => {
             query.video = !create;
             query.audio = !create;
         });
-
         this.call.on("call", link => {
+            link.registerDataChannel("data");
+            link.on("datachannel", channel => {
+                channel.onmessage = msg => console.log("datachannel", msg);
+                var timer = setInterval(() => channel.send(Math.random().toString()), 1000);
+                channel.onclose = () => {
+                    clearInterval(timer);
+                    console.error("data channel closed.");
+                };
+            });
             if (create) { //统计连接人数
                 link.on("closed", () => this.setState({ number: this.call.remotes.size }));
                 this.setState({ number: this.call.remotes.size });
             }
             else {
                 this.setState({ link });
+                link.on("closed", () => this.setState({ link: null }));
             }
         });
     }

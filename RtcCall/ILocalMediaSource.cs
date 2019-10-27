@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using WebrtcSharp;
 
 namespace Relywisdom
@@ -6,7 +7,7 @@ namespace Relywisdom
     /**
      * 某种类型的媒体流来源
      */
-    public abstract class ILocalMediaSource : EventEmitter, System.IDisposable
+    public abstract class ILocalMediaSource : System.IDisposable
     {
         public ILocalMediaSource(string kind)
         {
@@ -34,9 +35,13 @@ namespace Relywisdom
             {
                 this.isEnabled = enabled;
                 if (!enabled) this._justClose();
-                this.emit("enabled", enabled);
+                this.Enabled?.Invoke(enabled);
             }
         }
+        /// <summary>
+        /// 媒体源是否可用事件
+        /// </summary>
+        public event Action<bool> Enabled;
         /**
          * 创建媒体通道
          */
@@ -58,8 +63,20 @@ namespace Relywisdom
             {
                 this._track.Enabled = false;
                 this._track = null;
-                if (!nochange) this.emit("changed", false);
+                if (!nochange) this.Changed?.Invoke(false);
             }
+        }
+        /// <summary>
+        /// 媒体源发生变化
+        /// </summary>
+        public event Action<bool> Changed;
+        /// <summary>
+        /// 媒体源发生变化
+        /// </summary>
+        /// <param name="changed"></param>
+        protected void emitChanged(bool changed)
+        {
+            this.Changed?.Invoke(changed);
         }
         /**
          * 关闭媒体流
@@ -67,8 +84,12 @@ namespace Relywisdom
         public void close()
         {
             this._justClose();
-            this.emit("close");
+            this.Close?.Invoke();
         }
+        /// <summary>
+        /// 关闭事件
+        /// </summary>
+        public event Action Close;
         /**
          * 是否可用
          */

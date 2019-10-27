@@ -11,34 +11,29 @@ namespace Relywisdom
         /**
          * 初始化
          */
-        public override void start()
+        public override async Task start()
         {
-            base.start();
-            Task.Factory.StartNew(async () =>
+            var task = base.start();
+            if (task != null) await task;
+            var offer = await this.connection.createOffer();
+            this.socket.send(new
             {
-                var offer = await this.connection.createOffer();
-                this.socket.send(new
-                {
-                    kind = "webrtc",
-                    action = "offer",
-                    to = this.remote.id,
-                    offer
-                });
+                kind = "webrtc",
+                action = "offer",
+                to = this.remote.id,
+                offer
             });
         }
         /**
         * 收到消息
         * @param {Object} msg 消息
         */
-        public override void onmessage(Dictionary<string, object> msg)
+        public override async Task onmessage(Dictionary<string, object> msg)
         {
             if (msg.Get<string>("action") == "answer")
             {
-                Task.Factory.StartNew(async () =>
-                {
-                    await this.connection.setAnswer(msg.Get<Dictionary<string, object>>("answer"));
-                    this.connection.setState(new ConnectionWaitForQuery());
-                });
+                await this.connection.setAnswer(msg.Get<Dictionary<string, object>>("answer"));
+                this.connection.setState(new ConnectionWaitForQuery());
             }
         }
     }

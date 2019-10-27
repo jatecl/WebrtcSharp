@@ -27,7 +27,7 @@ namespace ScreenShare
 
         public ScreenSource() : base("video")
         {
-            this.on<bool>("changed", this._changed);
+            this.Changed += this._changed;
             this.thread = new Thread(this._runing);
             this.thread.Start();
         }
@@ -168,7 +168,7 @@ namespace ScreenShare
         public override async Task<bool> open()
         {
             this._track = RtcNavigator.createVideoTrack(videoSource);
-            this.emit("changed", true);
+            this.emitChanged(true);
             return true;
         }
 

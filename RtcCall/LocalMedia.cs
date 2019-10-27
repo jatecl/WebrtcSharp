@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Relywisdom
@@ -6,16 +7,22 @@ namespace Relywisdom
     /**
      * 多媒体源
      */
-    public class LocalMedia : EventEmitter, System.IDisposable
+    public class LocalMedia : System.IDisposable
     {
         public LocalMedia(ILocalMediaSource video, ILocalMediaSource audio)
         {
-            this.video = video;
-            this.audio = audio;
-            this.all["video"] = this.video;
-            this.all["audio"] = this.audio;
-            this.video.on("changed", () => this._mediaChanged(this.video));
-            this.audio.on("changed", () => this._mediaChanged(this.audio));
+            if (video != null)
+            {
+                this.video = video;
+                this.all["video"] = this.video;
+                this.video.Changed += enabled => this._mediaChanged(this.video, enabled);
+            }
+            if (audio != null)
+            {
+                this.audio = audio;
+                this.all["audio"] = this.audio;
+                this.audio.Changed += enabled => this._mediaChanged(this.audio, enabled);
+            }
         }
         public LocalMedia() : this(new LocalMediaSource("video"), new LocalMediaSource("audio")) { }
         /**
@@ -40,10 +47,14 @@ namespace Relywisdom
         /**
          * 获得播放流
          */
-        private void _mediaChanged(ILocalMediaSource source)
+        private void _mediaChanged(ILocalMediaSource source, bool enabled)
         {
-            this.emit("changed", source);
+            this.Changed?.Invoke(source, enabled);
         }
+        /// <summary>
+        /// 媒体源发生变化时
+        /// </summary>
+        public event Action<ILocalMediaSource, bool> Changed;
 
         public void Dispose()
         {

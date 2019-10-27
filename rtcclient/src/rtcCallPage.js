@@ -22,18 +22,18 @@ export class RtcCallPage extends React.Component {
                 type: "web"
             });
         this.media = new LocalMedia();
-        this.call = new RtcCall(this.socket, this.media, [{
-                urls: "stun:stun.l.google.com:19302"
-            }]);
+        this.call = new RtcCall([{
+            urls: "stun:stun.l.google.com:19302"
+        }],this.socket, this.media);
         this.call.on("query", (query, info) => {
             query.video = true;
             query.audio = true;
         });
         this.call.on("call", link => {
-            this.setState({ links: [...this.state.links.filter(l => l.id != link.id), link] });
             link.on("closed", () => {
                 this.setState({ links: this.state.links.filter(d => d != link) });
             });
+            this.setState({ links: [...this.state.links.filter(l => l.id != link.id), link] });
         });
         this.media.video.on("enabled", enabled => {
             this.setState({ video: enabled });

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WebrtcSharp;
 
 namespace ScreenShare
 {
@@ -36,21 +37,32 @@ namespace ScreenShare
             var videoSource = new ScreenSource();
             //*/
             var media = new LocalMedia(videoSource, new LocalMediaSource("audio"));
-            var call = new RtcCall(socket, media, new[] {
+            var call = new RtcCall(new[] {
                 new RtcIceServer {
                     urls = new []{ "stun:stun.l.google.com:19302" }
                 }
-            });
+            }, socket, media);
             call.Query += (query, info) =>
             {
-                query["video"] = false;
-                query["audio"] = false;
+                query.Video = false;
+                query.Audio = false;
             };
 
-            call.on<RemoteMedia>("call", link =>
+            call.Call += link =>
             {
-                link.on("closed", () => { });
-            });
+                link.registerDataChannel("data");
+                link.DataChannel += channel =>
+                {
+                    channel.Message += msg => Console.WriteLine("datachannel: " + msg);
+                    var timer = Timeout.setInterval(() => channel.Send(DateTime.Now.ToString()), 1000);
+                    channel.Closed += () =>
+                    {
+                        timer.clearInterval();
+                        Console.WriteLine("data channel closed.");
+                    };
+                };
+                link.Closed += () => { };
+            };
 
             call.join("test-room");
             Task.Factory.StartNew(async () =>

@@ -9,7 +9,7 @@ namespace Relywisdom
     /**
      * P2P连接
      */
-    class MediaConnection : EventEmitter
+    class MediaConnection
     {
         /**
          * 远程媒体
@@ -61,6 +61,10 @@ namespace Relywisdom
                 return this.remote.call;
             }
         }
+        /// <summary>
+        /// 创建数据通道
+        /// </summary>
+        private Dictionary<string, RTCDataChannel> _dataChannels = new Dictionary<string, RTCDataChannel>();
         /// <summary>
         /// P2P连接
         /// </summary>
@@ -130,15 +134,23 @@ namespace Relywisdom
                         break;
                 }
                 var name = GetIceConnectionName(state);
-                this.emit("statechanged", name);
-                this.emit("state_" + name);
+                this.StateChanged?.Invoke(name);
+                this._clearchecker();
+            };
+            this.observe.DataChannel += channel =>
+            {
+                this._registerDataChannel(channel);
             };
             //检查超时
             this._timer = Timeout.setTimeout(this._timeoutchecker, 10000);
-            this.once("statechanged", this._clearchecker);
             //初始化状态
             this.resetState(true);
         }
+
+        /// <summary>
+        /// 状态变好时发生
+        /// </summary>
+        public event Action<string> StateChanged;
         /// <summary>
         /// 状态转换为标准字符串
         /// </summary>
@@ -158,6 +170,37 @@ namespace Relywisdom
                 case IceConnectionState.Checking: return "checking";
             }
             return "unkown";
+        }
+        /**
+         * 创建数据通道
+         */
+        private void _createDataChannel(string label, RTCDataChannelOptions options)
+        {
+            if (this._dataChannels.ContainsKey(label)) return;
+            var ch = this.connection.CreateDataChannel(label, options);
+            this._registerDataChannel(ch);
+        }
+        /**
+         * 缓存数据通道
+         * @param {RTCDataChannel} ch 数据通道
+         */
+        private void _registerDataChannel(RTCDataChannel ch)
+        {
+            this._dataChannels[ch.Label] = ch;
+            ch.Opened += () => this.remote.emitDataChannel(ch);
+        }
+        /**
+        * 建立所有数据通道
+        */
+        private void _setDataChannels()
+        {
+            foreach (var label in this.remote.dataChannels.Keys)
+            {
+                if (this._dataChannels.ContainsKey(label)) continue;
+                RTCDataChannelOptions optional;
+                this.remote.dataChannels.TryGetValue(label, out optional);
+                this._createDataChannel(label, optional);
+            }
         }
         /**
          * 初始化状态
@@ -183,7 +226,19 @@ namespace Relywisdom
             }
             else
             {
-                this.state.onmessage(msg);
+                Task.Factory.StartNew(async () =>
+                {
+                    try
+                    {
+                        var task = this.state.onmessage(msg);
+                        if (task != null) await task;
+                    }
+                    catch (Exception exp)
+                    {
+                        Console.WriteLine(exp.Message);
+                        this.resetState(false);
+                    }
+                });
             }
         }
         /**
@@ -222,7 +277,7 @@ namespace Relywisdom
             var stream = new MediaStream();
             foreach (var key in this._tracks.Keys) stream.AddTrack(this._tracks[key]);
             this.remote.stream = stream;
-            this.remote.emit("addtrack", stream);
+            this.remote.emitAddtrack(stream);
         }
         /**
          * 设置当前状态
@@ -234,7 +289,19 @@ namespace Relywisdom
             if (this.state != null) this.state.clear();
             state.connection = this;
             this.state = state;
-            state.start();
+            Task.Factory.StartNew(async () =>
+            {
+                try
+                {
+                    var task = state.start();
+                    if (task != null) await task;
+                }
+                catch (Exception exp)
+                {
+                    Console.WriteLine(exp.Message);
+                    this.resetState(false);
+                }
+            });
         }
         /**
          * 发送缓存的candidates
@@ -251,6 +318,7 @@ namespace Relywisdom
          */
         public async Task<object> createOffer()
         {
+            this._setDataChannels();
             var offer = await this.connection.CreateOffer(ice_restart: true);
             if (offer == null) throw new Exception("创建offer失败");
             await this.connection.SetLocalDescription("offer", offer);
@@ -284,7 +352,8 @@ namespace Relywisdom
          */
         public async Task<Dictionary<string, object>> setLocalMedia(Dictionary<string, object> query)
         {
-            Dictionary<string, object> ret = new Dictionary<string, object>();
+            var ret = new Dictionary<string, object>();
+            if (this.local == null) return ret;
             var senders = this.connection.GetSenders();
             foreach (var key in this.local.all)
             {

@@ -224,6 +224,26 @@ namespace WebrtcSharp
             if (error != null) throw new Exception(error);
         }
         /// <summary>
+        /// 添加数据通道
+        /// </summary>
+        /// <param name="label">数据通道</param>
+        /// <param name="options">选项</param>
+        /// <returns>数据通道</returns>
+        public RTCDataChannel CreateDataChannel(string label, RTCDataChannelOptions options)
+        {
+            if (options == null) options = new RTCDataChannelOptions();
+            var channelPtr = PeerConnection_CreateDataChannel(Handler, label,
+                options.Reliable,
+                options.Ordered,
+                options.MaxRetransmitTime ?? -1,
+                options.MaxRetransmits ?? -1,
+                options.Protocol,
+                options.Negotiated,
+                options.Id
+                );
+            return Create<RTCDataChannel>(channelPtr);
+        }
+        /// <summary>
         /// C++ API：创建数据通道
         /// </summary>
         /// <param name="ptr">p2p连接指针</param>
@@ -237,7 +257,7 @@ namespace WebrtcSharp
         /// <param name="id">id</param>
         /// <returns>数据通道指针</returns>
         [DllImport(UnityPluginDll)]
-        internal static extern IntPtr PeerConnection_AddDataChannel(IntPtr ptr,
+        internal static extern IntPtr PeerConnection_CreateDataChannel(IntPtr ptr,
             string label,
             bool reliable,
             bool ordered,

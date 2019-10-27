@@ -8,7 +8,7 @@ namespace Relywisdom
     /// <summary>
     /// WebSocket 连接
     /// </summary>
-    public class RtcSocket : EventEmitter
+    public class RtcSocket
     {
         /**
          * 创建一个连接
@@ -82,10 +82,13 @@ namespace Relywisdom
             state.start();
             if (!noemit)
             {
-                this.emit(state.kind, state);
-                this.emit("changed", state);
+                this.Changed?.Invoke(state.kind);
             }
         }
+        /// <summary>
+        /// 当状态发生变化时
+        /// </summary>
+        public event Action<string> Changed;
         /**
          * 收到服务器信息
          * @param {Object} msg 信息
@@ -116,7 +119,7 @@ namespace Relywisdom
         public bool send(Object msg)
         {
             if (null == this.state.link) return false;
-            this.state.link.send(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(msg));
+            this.state.link.Send(new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(msg));
             return true;
         }
         /**
@@ -131,7 +134,15 @@ namespace Relywisdom
                 //尝试连接
                 this.state.connect();
                 //等待连接关闭
-                await Promise.Await(cs => this.once("close", cs));
+                await Promise.Await(cs => {
+                    Action<string> closed = null;
+                    closed = state => {
+                        if (state != "closed") return;
+                        Changed -= closed;
+                        cs();
+                    };
+                    Changed += closed;
+                });
                 //1秒后重试
                 if (this.connecting) await Promise.Await(cs => Timeout.setTimeout(cs, 1000));
             }

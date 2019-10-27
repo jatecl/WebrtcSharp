@@ -6,7 +6,7 @@ class RtpReceiverObserverProxy : public webrtc::RtpReceiverObserverInterface
 {
 public:
 	RtpReceiverObserverProxy() {}
-	~RtpReceiverObserverProxy();
+	virtual ~RtpReceiverObserverProxy();
 	WebrtcUnityStateCallback FirstPacketReceived = nullptr;
 	void OnFirstPacketReceived(cricket::MediaType media_type) override;
 };

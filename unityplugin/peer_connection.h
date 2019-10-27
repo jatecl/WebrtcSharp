@@ -6,10 +6,7 @@ class CreateSessionDescriptionObserverCallback :
 	public rtc::RefCountedObject<webrtc::CreateSessionDescriptionObserver>{
 public:
 	CreateSessionDescriptionObserverCallback() {}
-	~CreateSessionDescriptionObserverCallback() {
-		Success = nullptr;
-		Failure = nullptr;
-	}
+	virtual ~CreateSessionDescriptionObserverCallback();
 	WebrtcUnityResult2Callback Success = nullptr;
 	WebrtcUnityResultCallback Failure = nullptr;
 	void OnSuccess(webrtc::SessionDescriptionInterface* desc) override;
@@ -23,10 +20,7 @@ class SetSessionDescriptionObserverCallback :
 	public rtc::RefCountedObject<webrtc::SetSessionDescriptionObserver> {
 public:
 	SetSessionDescriptionObserverCallback() {}
-	~SetSessionDescriptionObserverCallback() {
-		Success = nullptr;
-		Failure = nullptr;
-	}
+	virtual ~SetSessionDescriptionObserverCallback();
 	WebrtcUnityCallback Success = nullptr;
 	WebrtcUnityResultCallback Failure = nullptr;
 	void OnSuccess() override;
@@ -35,7 +29,7 @@ public:
 };
 
 extern "C" {
-	__declspec(dllexport) void* PeerConnection_AddDataChannel(void* ptr, 
+	__declspec(dllexport) void* PeerConnection_CreateDataChannel(void* ptr,
 		const char* label, 
 		bool reliable, 
 		bool ordered,

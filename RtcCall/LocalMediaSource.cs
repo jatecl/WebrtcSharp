@@ -38,8 +38,8 @@ namespace Relywisdom
                 }
                 if (null != this._track) return true;
                 this._track = getUserMedia();
-                this.emit("changed", true);
-                this.emit("open");
+                this.emitChanged(true);
+                this.Open?.Invoke();
                 return true;
             }
             catch (Exception e)
@@ -47,7 +47,10 @@ namespace Relywisdom
                 return false;
             }
         }
-
+        /// <summary>
+        /// 打开媒体事件
+        /// </summary>
+        public event Action Open;
         public override Task<bool> open()
         {
             return open(null);

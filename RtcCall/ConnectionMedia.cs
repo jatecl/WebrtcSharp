@@ -12,7 +12,7 @@ namespace Relywisdom
             this.media = media;
         }
 
-        public override void start()
+        public override Task start()
         {
             base.start();
             var query = new Dictionary<string, object>();
@@ -25,23 +25,22 @@ namespace Relywisdom
                 media = this.media,
                 query
             });
+            return null;
         }
 
-        public override void onmessage(Dictionary<string, object> msg)
+        public override async Task onmessage(Dictionary<string, object> msg)
         {
             if (msg.Get<string>("action") == "offer")
             {
-                Task.Factory.StartNew(async () => {
-                    var answer = await this.connection.createAnswer(msg.Get<Dictionary<string, object>>("offer"));
-                    this.socket.send(new
-                    {
-                        kind = "webrtc",
-                        action = "answer",
-                        to = this.remote.id,
-                        answer
-                    });
-                    this.connection.setState(new ConnectionWaitForQuery());
+                var answer = await this.connection.createAnswer(msg.Get<Dictionary<string, object>>("offer"));
+                this.socket.send(new
+                {
+                    kind = "webrtc",
+                    action = "answer",
+                    to = this.remote.id,
+                    answer
                 });
+                this.connection.setState(new ConnectionWaitForQuery());
             }
             else if (msg.Get<string>("action") == "require")
             {

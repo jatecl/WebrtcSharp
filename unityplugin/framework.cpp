@@ -91,7 +91,6 @@ BytesBuffer::~BytesBuffer()
 		delete[](*it);
 		++it;
 	}
-	PointerArray::~PointerArray();
 }
 
 PointerArray::PointerArray(int length)

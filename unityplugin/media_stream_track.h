@@ -6,9 +6,7 @@
 class VideoObserver : public rtc::VideoSinkInterface<webrtc::VideoFrame> {
 public:
 	VideoObserver() {}
-	~VideoObserver() {
-		OnI420FrameReady = nullptr;
-	}
+	virtual ~VideoObserver();
 	WebrtcUnityResultCallback OnI420FrameReady = nullptr;
 
 protected:
@@ -22,9 +20,7 @@ private:
 class AudioObserver : public webrtc::AudioTrackSinkInterface {
 public:
 	AudioObserver() {}
-	virtual ~AudioObserver() {
-		OnDataReady = nullptr;
-	};
+	virtual ~AudioObserver();
 	WebrtcUnityResultCallback OnDataReady = nullptr;
 
 protected:

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using WebSocketSharp;
 
 namespace Relywisdom
 {
@@ -84,7 +85,7 @@ namespace Relywisdom
         private void _timeout()
         {
             this._timer = null;
-            this.link.close();
+            this.link.Close();
         }
     }
 }

@@ -33,7 +33,10 @@ void PeerConnectionObserverProxy::OnRemoveStream(rtc::scoped_refptr<MediaStreamI
 
 void PeerConnectionObserverProxy::OnDataChannel(rtc::scoped_refptr<DataChannelInterface> data_channel)
 {
-	if (DataChannel != nullptr) DataChannel(data_channel.get());
+	if (DataChannel != nullptr) {
+		data_channel->AddRef();
+		DataChannel(data_channel.get());
+	}
 }
 
 void PeerConnectionObserverProxy::OnRenegotiationNeeded()
@@ -72,7 +75,7 @@ void PeerConnectionObserverProxy::OnIceCandidate(const IceCandidateInterface* ca
 
 		int sdp_index = candidate->sdp_mline_index();
 
-		auto ptrs = new void* [3] { (void*)sdp.c_str(), &sdp_index, (void*)candidate->sdp_mid().c_str() };
+		auto ptrs = new void* [3]{ (void*)sdp.c_str(), &sdp_index, (void*)candidate->sdp_mid().c_str() };
 
 		IceCandidate(ptrs);
 		delete[] ptrs;

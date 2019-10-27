@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Relywisdom
 {
@@ -18,9 +19,10 @@ namespace Relywisdom
         /**
          * 状态初始化
          */
-        public virtual void start()
+        public virtual Task start()
         {
             if (this._clear) this._timer = Timeout.setTimeout(this._timeout, 10000);
+            return null;
         }
         /**
          * 超时计时器
@@ -77,6 +79,6 @@ namespace Relywisdom
          * 收到消息
          * @param {Object} msg 消息
          */
-        public abstract void onmessage(Dictionary<string, object> msg);
+        public abstract Task onmessage(Dictionary<string, object> msg);
     }
 }

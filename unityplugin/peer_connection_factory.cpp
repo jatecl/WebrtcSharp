@@ -3,6 +3,8 @@
 #include "peer_connection.h"
 #include "rtc_configuration.h"
 #include <api\video\i420_buffer.h>
+#include "media/engine/webrtc_media_engine.h"
+
 using namespace webrtc;
 
 class SampleVideoCapturer : public rtc::VideoSourceInterface<VideoFrame> {
@@ -79,22 +81,42 @@ private:
 void* PeerConnectionFactory_new()
 {
 	auto ptr = new PeerConnectionFactoryPointer();
-	ptr->worker_thread = rtc::Thread::CreateWithSocketServer();
+	ptr->network_thread = rtc::Thread::CreateWithSocketServer();
+	ptr->network_thread->SetName("network_thread", nullptr);
+	ptr->network_thread->Start();
+	ptr->worker_thread = rtc::Thread::Create();
+	ptr->worker_thread->SetName("worker_thread", nullptr);
 	ptr->worker_thread->Start();
-	ptr->signaling_thread = rtc::Thread::CreateWithSocketServer();
+	ptr->signaling_thread = rtc::Thread::Create();
+	ptr->signaling_thread->SetName("signaling_thread", nullptr);
 	ptr->signaling_thread->Start();
 
-	ptr->factory = webrtc::CreatePeerConnectionFactory(
-		ptr->worker_thread.get(), ptr->worker_thread.get(), ptr->signaling_thread.get(),
-		nullptr, webrtc::CreateBuiltinAudioEncoderFactory(),
+	rtc::scoped_refptr<AudioMixer> audio_mixer = nullptr;
+	std::unique_ptr<CallFactoryInterface> call_factory(CreateCallFactory());
+	std::unique_ptr<cricket::MediaEngineInterface> media_engine(cricket::WebRtcMediaEngineFactory::Create(
+		nullptr, 
+		webrtc::CreateBuiltinAudioEncoderFactory(),
 		webrtc::CreateBuiltinAudioDecoderFactory(),
-		std::unique_ptr<webrtc::VideoEncoderFactory>(
-			new webrtc::MultiplexEncoderFactory(
-				absl::make_unique<webrtc::InternalEncoderFactory>())),
-		std::unique_ptr<webrtc::VideoDecoderFactory>(
-			new webrtc::MultiplexDecoderFactory(
-				absl::make_unique<webrtc::InternalDecoderFactory>())),
-		nullptr, nullptr);
+		std::unique_ptr<webrtc::VideoEncoderFactory>(new webrtc::MultiplexEncoderFactory(absl::make_unique<webrtc::InternalEncoderFactory>())),
+		std::unique_ptr<webrtc::VideoDecoderFactory>(new webrtc::MultiplexDecoderFactory(absl::make_unique<webrtc::InternalDecoderFactory>())),
+		nullptr, 
+		AudioProcessingBuilder().Create()
+	));
+	//std::unique_ptr<MediaTransportFactory> media_transport_factory(new MediaTransportFactory());
+
+	PeerConnectionFactoryDependencies dependencies;
+	dependencies.network_thread = ptr->network_thread.get();
+	dependencies.worker_thread = ptr->worker_thread.get();
+	dependencies.signaling_thread = ptr->signaling_thread.get();
+	dependencies.media_engine = std::move(media_engine);
+	dependencies.call_factory = std::move(call_factory);
+	//dependencies.event_log_factory = std::move(rtc_event_log_factory);
+	//dependencies.fec_controller_factory = std::move(fec_controller_factory);
+	//dependencies.network_controller_factory = std::move(network_controller_factory);
+	//dependencies.network_state_predictor_factory = std::move(network_state_predictor_factory);
+	//dependencies.media_transport_factory = std::move(media_transport_factory);
+
+	ptr->factory = rtc::scoped_refptr<PeerConnectionFactoryInterface>(CreateModularPeerConnectionFactory(std::move(dependencies)));
 
 	ptr->AddRef();
 	return ptr;
@@ -151,6 +173,7 @@ void* PeerConnectionFactory_CreateAudioSource(void* ptr)
 PeerConnectionFactoryPointer::~PeerConnectionFactoryPointer()
 {
 	factory = nullptr;
+	network_thread.reset();
 	signaling_thread.reset();
 	worker_thread.reset();
 }

@@ -50,10 +50,10 @@
     <Compile Include="ConnectionQuery.cs" />
     <Compile Include="IConnectionState.cs" />
     <Compile Include="ConnectionWaitForQuery.cs" />
-    <Compile Include="EventEmitter.cs" />
     <Compile Include="LocalMedia.cs" />
     <Compile Include="LocalMediaSource.cs" />
     <Compile Include="MediaConnection.cs" />
+    <Compile Include="MediaQuery.cs" />
     <Compile Include="MediaStream.cs" />
     <Compile Include="IMessageFilter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -69,7 +69,6 @@
     <Compile Include="RtcSocketState.cs" />
     <Compile Include="RtcSocketStoped.cs" />
     <Compile Include="Timeout.cs" />
-    <Compile Include="WebSocket.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WebrtcSharp\WebrtcSharp.csproj">

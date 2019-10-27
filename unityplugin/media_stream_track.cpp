@@ -1,6 +1,11 @@
 #include "media_stream_track.h"
 #include "api/video/i420_buffer.h"
 
+VideoObserver::~VideoObserver()
+{
+	OnI420FrameReady = nullptr;
+}
+
 void VideoObserver::OnFrame(const webrtc::VideoFrame& frame)
 {
 	std::unique_lock<std::mutex> lock(mutex);
@@ -58,6 +63,9 @@ void AudioObserver::OnData(const void* audio_data, int bits_per_sample, int samp
 	OnDataReady(&ptrs);
 }
 
+AudioObserver::~AudioObserver() {
+	OnDataReady = nullptr;
+}
 
 void FrameVideoSource::AddOrUpdateSink(
 	rtc::VideoSinkInterface<webrtc::VideoFrame>* sink,

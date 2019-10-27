@@ -8,7 +8,7 @@ namespace Relywisdom
     /**
      * 通话
      */
-    public class RtcCall : EventEmitter, IMessageFilter
+    public class RtcCall : IMessageFilter
     {
         /**
          * ICE服务器
@@ -32,30 +32,41 @@ namespace Relywisdom
          * @param {LocalMedia} local_media 本地媒体源
          * @param {RtcIceServer[]}} iceServers ICE服务器
          */
-        public RtcCall(RtcSocket socket, LocalMedia local_media, RtcIceServer[] iceServers)
+        public RtcCall(RtcIceServer[] iceServers, RtcSocket socket, LocalMedia local_media = null)
         {
             this.socket = socket;
             this.local = local_media;
             this.iceServers = iceServers;
             this.socket.setFilter("webrtc", this);
-            this.socket.on("connected", this._connected);
-            this.socket.on("changed", this._socketchanged);
-            this.local.on("changed", this._localChanged);
+            this.socket.Changed += this._socketchanged;
+            if (this.local != null) this.local.Changed += this._localChanged;
         }
 
-        public event Action<Dictionary<string, object>, RemoteMedia> Query;
+        /// <summary>
+        /// 配置要求对方发送的媒体
+        /// </summary>
+        public event Action<MediaQuery, RemoteMedia> Query;
 
+        /// <summary>
+        /// 要求对方发送的媒体
+        /// </summary>
+        /// <param name="query">配置</param>
+        /// <param name="remote">远程媒体信息</param>
         internal void emitQuery(Dictionary<string, object> query, RemoteMedia remote)
         {
-            Query?.Invoke(query, remote);
+            var meidaQuery = new MediaQuery();
+            Query?.Invoke(meidaQuery, remote);
+            if (meidaQuery.Audio) query["audio"] = true;
+            if (meidaQuery.Video) query["video"] = true;
         }
 
         /**
-* 状态改变时发生
-*/
-        private void _socketchanged()
+        * 状态改变时发生
+        */
+        private void _socketchanged(string state)
         {
             this._canbejoin = false;
+            if (state == "connected") this._connected();
         }
         /**
          * 连接成功时
@@ -168,13 +179,17 @@ namespace Relywisdom
                 now = new RemoteMedia(master, this, from, version, info);
                 this.remotes[from] = now;
                 now.connect();
-                this.emit("call", now);
+                this.Call?.Invoke(now);
             }
         }
+        /// <summary>
+        /// 新的连接
+        /// </summary>
+        public event Action<RemoteMedia> Call;
         /**
          * 本地媒体变化时，改变推送方式
          */
-        private void _localChanged()
+        private void _localChanged(ILocalMediaSource source, bool enabled)
         {
             foreach (var remote in this.remotes.Values) remote.localChanged();
         }

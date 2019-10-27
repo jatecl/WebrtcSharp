@@ -39,6 +39,9 @@
     <ClInclude Include="rtp_sender.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="rtc_data_channel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="peer_connection_factory.cpp">
@@ -63,6 +66,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="rtp_sender.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="rtc_data_channel.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

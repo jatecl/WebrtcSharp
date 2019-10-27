@@ -5,7 +5,7 @@ namespace Relywisdom
     /// <summary>
     /// js风格的定时器
     /// </summary>
-    class Timeout
+    public class Timeout
     {
         private System.Threading.Timer timer;
 

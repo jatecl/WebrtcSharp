@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -175,6 +175,7 @@
     <ClInclude Include="peer_connection_factory.h" />
     <ClInclude Include="peer_connection_observer.h" />
     <ClInclude Include="rtc_configuration.h" />
+    <ClInclude Include="rtc_data_channel.h" />
     <ClInclude Include="rtp_receiver.h" />
     <ClInclude Include="rtp_sender.h" />
   </ItemGroup>
@@ -185,6 +186,7 @@
     <ClCompile Include="peer_connection_factory.cpp" />
     <ClCompile Include="peer_connection_observer.cpp" />
     <ClCompile Include="rtc_configuration.cpp" />
+    <ClCompile Include="rtc_data_channel.cpp" />
     <ClCompile Include="rtp_receiver.cpp" />
     <ClCompile Include="rtp_sender.cpp" />
   </ItemGroup>

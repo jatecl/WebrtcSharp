@@ -19,9 +19,9 @@ namespace Relywisdom
         /**
          * 初始化
          */
-        public override void start()
+        public override Task start()
         {
-            base.start();
+            var task = base.start();
             var query = new Dictionary<string, object>();
             this.call.emitQuery(query, this.remote);
             this.socket.send(new
@@ -31,43 +31,41 @@ namespace Relywisdom
                 to = this.remote.id,
                 query
             });
+            return task;
         }
         /**
          * 收到消息
          * @param {Object} msg 消息
          */
-        public override void onmessage(Dictionary<string, object> msg)
+        public override async Task onmessage(Dictionary<string, object> msg)
         {
-            Task.Factory.StartNew(async () =>
+            if (msg.Get<string>("action") == "media")
             {
-                if (msg.Get<string>("action") == "media")
+                var media = await this.connection.setLocalMedia(msg.Get<Dictionary<string, object>>("query"));
+                var rm = msg.Get<Dictionary<string, object>>("media");
+                if (media.Get<bool>("video") || (media.Get<bool>("audio") && !rm.Get<bool>("video"))) this.connection.setState(new ConnectionOffer());
+                else
                 {
-                    var media = await this.connection.setLocalMedia(msg.Get<Dictionary<string, object>>("query"));
-                    var rm = msg.Get<Dictionary<string, object>>("media");
-                    if (media.Get<bool>("video") || (media.Get<bool>("audio") && !rm.Get<bool>("video"))) this.connection.setState(new ConnectionOffer());
-                    else
-                    {
-                        this.socket.send(new
-                        {
-                            kind = "webrtc",
-                            action = "require",
-                            to = this.remote.id
-                        });
-                    }
-                }
-                else if (msg.Get<string>("action") == "offer")
-                {
-                    var answer = await this.connection.createAnswer(msg);
                     this.socket.send(new
                     {
                         kind = "webrtc",
-                        action = "answer",
-                        to = this.remote.id,
-                        answer
+                        action = "require",
+                        to = this.remote.id
                     });
-                    this.connection.setState(new ConnectionWaitForQuery());
                 }
-            });
+            }
+            else if (msg.Get<string>("action") == "offer")
+            {
+                var answer = await this.connection.createAnswer(msg);
+                this.socket.send(new
+                {
+                    kind = "webrtc",
+                    action = "answer",
+                    to = this.remote.id,
+                    answer
+                });
+                this.connection.setState(new ConnectionWaitForQuery());
+            }
         }
     }
 }

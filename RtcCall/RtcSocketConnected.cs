@@ -1,4 +1,6 @@
-﻿namespace Relywisdom
+﻿using WebSocketSharp;
+
+namespace Relywisdom
 {
     /**
      * 连接成功状态

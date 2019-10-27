@@ -157,7 +157,8 @@ namespace WebrtcSharp
         /// <param name="channel">数据通道指针</param>
         private void OnDataChannel(IntPtr channel)
         {
-            DataChannel?.Invoke(channel);
+            var ch = Create<RTCDataChannel>(channel);
+            DataChannel?.Invoke(ch);
         }
         /// <summary>
         /// 转发OnIceCandidate
@@ -251,7 +252,7 @@ namespace WebrtcSharp
         /// <summary>
         /// DataChannel 事件
         /// </summary>
-        public event WebrtcUnityResultCallback DataChannel;
+        public event Action<RTCDataChannel> DataChannel;
         /// <summary>
         /// RenegotiationNeeded 事件
         /// </summary>

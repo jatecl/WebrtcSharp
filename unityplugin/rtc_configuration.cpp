@@ -1,8 +1,13 @@
 #include "rtc_configuration.h"
 
-void* RTCConfiguration_new(bool enable_rtp_data_channel, bool enable_dtls_srtp)
+void* RTCConfiguration_new(
+	bool use_media_transport_for_data_channels,
+	bool enable_rtp_data_channel, 
+	bool enable_dtls_srtp)
 {
 	auto typed = new StructPointer<webrtc::PeerConnectionInterface::RTCConfiguration>();
+	typed->data.use_media_transport_for_data_channels = use_media_transport_for_data_channels;
+	typed->data.use_media_transport = use_media_transport_for_data_channels;
 	typed->data.enable_rtp_data_channel = enable_rtp_data_channel;
 	typed->data.enable_dtls_srtp = enable_dtls_srtp;
 	return typed;

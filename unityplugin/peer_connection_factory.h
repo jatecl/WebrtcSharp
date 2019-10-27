@@ -16,6 +16,7 @@ class PeerConnectionFactoryPointer : public rtc::RefCountedObject<rtc::RefCountI
 public:
 	PeerConnectionFactoryPointer() {}
 	~PeerConnectionFactoryPointer();
+	std::unique_ptr<rtc::Thread> network_thread;
 	std::unique_ptr<rtc::Thread> worker_thread;
 	std::unique_ptr<rtc::Thread> signaling_thread;
 	rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> factory;

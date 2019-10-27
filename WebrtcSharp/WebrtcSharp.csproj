@@ -70,6 +70,8 @@
     <Compile Include="AudioTrack.cs" />
     <Compile Include="FrameVideoSource.cs" />
     <Compile Include="IceCandidate.cs" />
+    <Compile Include="RTCDataChannel.cs" />
+    <Compile Include="RTCDataChannelOptions.cs" />
     <Compile Include="RtpReceiver.cs" />
     <Compile Include="PointerArray.cs" />
     <Compile Include="UnmanageHolder.cs" />

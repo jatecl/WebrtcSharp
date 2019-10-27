@@ -15,10 +15,14 @@ namespace WebrtcSharp
         /// <summary>
         /// 创建P2P连接参数
         /// </summary>
+        /// <param name="use_media_transport_for_data_channels">use media_transport for data channels</param>
         /// <param name="enable_rtp_data_channel">enable rtp data channel</param>
         /// <param name="enable_dtls_srtp">enable dtls srtp</param>
-        public RTCConfiguration(bool enable_rtp_data_channel = true, bool enable_dtls_srtp = true)
-            : base(RTCConfiguration_new(enable_rtp_data_channel, enable_dtls_srtp))
+        public RTCConfiguration(
+            bool use_media_transport_for_data_channels = false, 
+            bool enable_rtp_data_channel = false, 
+            bool enable_dtls_srtp = true)
+            : base(RTCConfiguration_new(use_media_transport_for_data_channels, enable_rtp_data_channel, enable_dtls_srtp))
         {
 
         }
@@ -45,11 +49,15 @@ namespace WebrtcSharp
         /// <summary>
         /// C++ API：创建P2P连接参数
         /// </summary>
+        /// <param name="use_media_transport_for_data_channels">use media_transport for data channels</param>
         /// <param name="enable_rtp_data_channel">enable rtp data channel</param>
         /// <param name="enable_dtls_srtp">enable dtls srtp</param>
         /// <returns>P2P连接参数指针</returns>
         [DllImport(UnityPluginDll)]
-        internal static extern IntPtr RTCConfiguration_new(bool enable_rtp_data_channel, bool enable_dtls_srtp);
+        internal static extern IntPtr RTCConfiguration_new(
+            bool use_media_transport_for_data_channels, 
+            bool enable_rtp_data_channel, 
+            bool enable_dtls_srtp);
         /// <summary>
         /// C++ API：添加Ice服务器信息
         /// </summary>

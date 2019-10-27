@@ -313,15 +313,15 @@ export class RtcCall extends EventEmitter {
      * @param {LocalStream} local_media 本地媒体源
      * @param {Array<IceServer>}} iceServers ICE服务器
      */
-    constructor(socket, local_media, iceServers) {
+    constructor(iceServers, socket, local_media) {
         super();
+        this.iceServers = iceServers;
         this.socket = socket;
         this.local = local_media;
-        this.iceServers = iceServers;
         this.socket.setFilter("webrtc", this);
         this.socket.on("connected", this._connected);
         this.socket.on("changed", this._socketchanged);
-        this.local.on("changed", this._localChanged);
+        if (this.local) this.local.on("changed", this._localChanged);
     }
     /**
      * 状态改变时发生
@@ -584,24 +584,31 @@ class LocalMediaSource extends EventEmitter {
  * 多媒体源
  */
 export class LocalMedia extends EventEmitter {
-    constructor() {
+    constructor(video = true, audio = true) {
         super();
-        this.all = { video: this.video, audio: this.audio };
-        this.video.on("changed", () => this._mediaChanged(this.video));
-        this.audio.on("changed", () => this._mediaChanged(this.audio));
+        if (video) {
+            this.video = new LocalMediaSource("video");
+            this.all.video = this.video;
+            this.video.on("changed", () => this._mediaChanged(this.video));
+        }
+        if (audio) {
+            this.audio = new LocalMediaSource("audio")
+            this.all.audio = this.audio;
+            this.audio.on("changed", () => this._mediaChanged(this.audio));
+        }
     }
     /**
      * 视频源
      */
-    video = new LocalMediaSource("video");
+    video;
     /**
      * 音频源
      */
-    audio = new LocalMediaSource("audio");
+    audio;
     /**
      * 所有媒体源
      */
-    all;
+    all = {};
     /**
      * 打开媒体
      */
@@ -669,6 +676,18 @@ class RemoteMedia extends EventEmitter {
      */
     connection;
     /**
+     * 希望连接的数据通道，这里并不存储数据通道，请使用on("datachannel", channel => {})接收数据通道
+     */
+    dataChannels = new Map();
+    /**
+     * 预注册数据通道。这里不会返回数据通道，请使用on("datachannel", channel => {})接收数据通道
+     * @param {String} label 数据通道标识
+     * @param {Object} optional 选项
+     */
+    registerDataChannel(label, optional) {
+        this.dataChannels.set(label, optional);
+    }
+    /**
      * 收到新消息
      * @param {Object} msg 消息
      */
@@ -729,6 +748,10 @@ class MediaConnection extends EventEmitter {
      * candidate缓存
      */
     _candidates = [];
+    /**
+     * 创建数据通道
+     */
+    _dataChannels = new Map();
     /**
      * 连接
      */
@@ -800,11 +823,43 @@ class MediaConnection extends EventEmitter {
             this.emit("statechanged", state);
             this.emit("state_" + state);
         };
+        //收到数据连接时
+        this.connection.ondatachannel = evt => {
+            let ch = evt.channel;
+            this._registerDataChannel(ch);
+        };
+        
         //检查超时
         this._timer = setTimeout(this._timeoutchecker, 10000);
         this.once("statechanged", this._clearchecker);
         //初始化状态
         this.resetState(true);
+    }
+    /**
+     * 创建数据通道
+     */
+    _createDataChannel(label, options) {
+        if (this._dataChannels.has(label)) return;
+        var ch = this.connection.createDataChannel(label, options);
+        this._registerDataChannel(ch);
+    }
+    /**
+     * 缓存数据通道
+     * @param {RTCDataChannel} ch 数据通道
+     */
+    _registerDataChannel(ch) {
+        this._dataChannels.set(ch.label, ch);
+        ch.onopen = () => this.remote.emit("datachannel", ch);
+    }
+    /**
+     * 建立所有数据通道
+     */
+    _setDataChannels() {
+        for (let label of this.remote.dataChannels.keys()) {
+            if (this._dataChannels.has(label)) continue;
+            let optional = this.remote.dataChannels.get(label);
+            this._createDataChannel(label, optional);
+        }
     }
     /**
      * 初始化状态
@@ -818,14 +873,21 @@ class MediaConnection extends EventEmitter {
      * 收到消息
      * @param {Object} msg 消息
      */
-    onmessage(msg) {
+    async onmessage(msg) {
         if (msg.action == "candidate") {
             let candidate = new RTCIceCandidate(msg.candidate);
             if (this._candidates !== null) this._candidates.push(candidate);
             else this.connection.addIceCandidate(candidate);
         }
         else {
-            this.state.onmessage && this.state.onmessage(msg);
+            try {
+                let promise = this.state.onmessage && this.state.onmessage(msg);
+                if (promise instanceof Promise) await promise;
+            }
+            catch(e) {
+                console.error(e);
+                this.resetState(false);
+            }
         }
     }
     /**
@@ -865,12 +927,20 @@ class MediaConnection extends EventEmitter {
      * 设置当前状态
      * @param {Object} state 当前状态
      */
-    setState(state) {
+    async setState(state) {
         if (state == this.state) return;
         if (this.state && this.state.clear) this.state.clear();
         state.connection = this;
         this.state = state;
-        state.start && state.start();
+        
+        try {
+            let promise = state.start && state.start();;
+            if (promise instanceof Promise) await promise;
+        }
+        catch(e) {
+            console.error(e);
+            this.resetState(false);
+        }
     }
     /**
      * 发送缓存的candidates
@@ -885,6 +955,7 @@ class MediaConnection extends EventEmitter {
      * @param {Object} query 对方要求
      */
     async createOffer() {
+        this._setDataChannels();
         let offer = await this.connection.createOffer({ iceRestart: true });
         if (!offer) throw new Error("创建offer失败");
         await this.connection.setLocalDescription(offer);
@@ -915,7 +986,8 @@ class MediaConnection extends EventEmitter {
      * @param {Object} query 对方要求
      */
     async setLocalMedia(query) {
-        let ret = {};
+        let meida = {};
+        if (!this.local) return meida;
         //如果支持新的api
         if (this.connection.getSenders) {
             let senders = this.connection.getSenders();
@@ -934,7 +1006,7 @@ class MediaConnection extends EventEmitter {
                             if (firefox) this.connection.addTrack(track, track._stream);
                             else this.connection.addTrack(track);
                         }
-                        ret[key] = true;
+                        meida[key] = true;
                         //如果已经设置或者替换，就继续
                         continue;
                     }
@@ -958,10 +1030,10 @@ class MediaConnection extends EventEmitter {
                 var stream = new MediaStream();
                 stream.addTrack(track);
                 this.connection.addStream(stream);
-                ret[key] = true;
+                meida[key] = true;
             }
         }
-        return ret;
+        return meida;
     }
     /**
      * 关闭P2P连接
