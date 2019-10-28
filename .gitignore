@@ -46,3 +46,7 @@
 /rtcclient/package-lock.json
 /ScreenShare/bin
 /ScreenShare/obj
+/WebrtcSharp/WebrtcSharp.nuspec
+/WebrtcSharp/WebrtcSharp.1.0.0.nupkg
+/WebrtcSharp/*.nupkg
+/MigrationBackup

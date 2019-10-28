@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
 [assembly: AssemblyTitle("WebrtcSharp")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Webrtc for .Net")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Jatecl")]
 [assembly: AssemblyProduct("WebrtcSharp")]
-[assembly: AssemblyCopyright("Copyright ©  2019")]
+[assembly: AssemblyCopyright("Copyright ©  2019 Jatecl")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
