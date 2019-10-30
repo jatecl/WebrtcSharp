@@ -442,6 +442,7 @@ export class RtcCall extends EventEmitter {
      * 结束通话
      */
     close() {
+        this.socket.removeFilter("webrtc");
         for (let c of this.rooms.keys()) this.socket.send({
             kind: "webrtc",
             action: "leave",

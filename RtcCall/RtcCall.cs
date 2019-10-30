@@ -214,6 +214,7 @@ namespace Relywisdom
          */
         public void close()
         {
+            this.socket.removeFilter("webrtc");
             foreach (var c in this.rooms.Keys) this.socket.send(new
             {
                 kind = "webrtc",
