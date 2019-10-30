@@ -11,26 +11,26 @@ namespace WebrtcSharp
     /// 给dll调用的无参回调
     /// </summary>
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void WebrtcUnityCallback();
+    internal delegate void WebrtcUnityCallback();
     /// <summary>
     /// 给dll调用的状态回调
     /// </summary>
     /// <param name="state"></param>
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void WebrtcUnityStateCallback(int state);
+    internal delegate void WebrtcUnityStateCallback(int state);
     /// <summary>
     /// 给dll调用用的数据回调
     /// </summary>
     /// <param name="val"></param>
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void WebrtcUnityResultCallback(IntPtr val);
+    internal delegate void WebrtcUnityResultCallback(IntPtr val);
     /// <summary>
     /// 给dll用的带两个数据的回调
     /// </summary>
     /// <param name="val"></param>
     /// <param name="val2"></param>
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void WebrtcUnityResult2Callback(IntPtr val, IntPtr val2);
+    internal delegate void WebrtcUnityResult2Callback(IntPtr val, IntPtr val2);
     /// <summary>
     /// dll指针对象
     /// </summary>

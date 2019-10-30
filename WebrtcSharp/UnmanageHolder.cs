@@ -5,7 +5,7 @@ namespace WebrtcSharp
     /// <summary>
     /// 为了保持一些对象不被回收
     /// </summary>
-    class UnmanageHolder
+    public class UnmanageHolder
     {
         /// <summary>
         /// 用户保存对象的列表

@@ -187,10 +187,10 @@ namespace WebrtcSharp
         /// <param name="track">媒体轨道</param>
         /// <param name="labels">轨道标识</param>
         /// <returns>发送当前媒体轨道的发送器</returns>
-        public RtcSender AddTrack(MediaStreamTrack track, string[] labels)
+        public RtpSender AddTrack(MediaStreamTrack track, string[] labels)
         {
             var handler = PeerConnection_AddTrack(Handler, track.Handler, labels, labels.Length);
-            var sender = Create<RtcSender>(handler, true);
+            var sender = Create<RtpSender>(handler, true);
             if (sender != null) sender.Track = track;
             return sender;
         }
@@ -198,17 +198,17 @@ namespace WebrtcSharp
         /// 获取所有发送器
         /// </summary>
         /// <returns></returns>
-        public unsafe RtcSender[] GetSenders()
+        public unsafe RtpSender[] GetSenders()
         {
             var ptrList = PeerConnection_GetSenders(this.Handler);
             var list = Create<PointerArray>(ptrList);
             var items = list.GetBuffer();
 
-            var ret = new List<RtcSender>();
+            var ret = new List<RtpSender>();
             while (*items != null)
             {
                 IntPtr senderPtr = new IntPtr(*items);
-                var sender = Create<RtcSender>(senderPtr, true);
+                var sender = Create<RtpSender>(senderPtr, true);
                 if (sender != null) ret.Add(sender);
                 ++items;
             }
@@ -218,7 +218,7 @@ namespace WebrtcSharp
         /// 移除媒体轨道
         /// </summary>
         /// <param name="sender">轨道所在的发送器</param>
-        public void RemoveTrack(RtcSender sender)
+        public void RemoveTrack(RtpSender sender)
         {
             var error = PeerConnection_RemoveTrack(Handler, sender.Handler);
             if (error != null) throw new Exception(error);

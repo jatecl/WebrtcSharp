@@ -72,6 +72,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AudioFrame.cs" />
     <Compile Include="AudioTrack.cs" />
     <Compile Include="FrameVideoSource.cs" />
     <Compile Include="IceCandidate.cs" />
@@ -82,6 +83,7 @@
     <Compile Include="UnmanageHolder.cs" />
     <Compile Include="VideoDeviceCapabilities.cs" />
     <Compile Include="VideoDeviceInfo.cs" />
+    <Compile Include="VideoFrame.cs" />
     <Compile Include="VideoSource.cs" />
     <Compile Include="AudioSource.cs" />
     <Compile Include="FrameAudioSource.cs" />
@@ -92,7 +94,7 @@
     <Compile Include="Promise.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RTCConfiguration.cs" />
-    <Compile Include="RtcSender.cs" />
+    <Compile Include="RtpSender.cs" />
     <Compile Include="VideoTrack.cs" />
     <Compile Include="WebrtcObject.cs" />
   </ItemGroup>
