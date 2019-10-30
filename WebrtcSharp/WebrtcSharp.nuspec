@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>WebrtcSharp</id>
+    <version>1.0.1.0</version>
+    <title>WebrtcSharp</title>
+    <authors>Jatecl</authors>
+    <owners>Jatecl</owners>
+    <projectUrl>https://github.com/jatecl/WebrtcSharp</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Webrtc binding library for Windows x64</description>
+    <releaseNotes>Add unityplugin.dll, and copy</releaseNotes>
+    <copyright>Copyright 2019 Jatecl</copyright>
+    <tags>WebrtcSharp Webrtc Webrtc.net</tags>
+    <dependencies>
+      <group targetFramework="net461"></group>
+    </dependencies>
+    <frameworkAssemblies>
+    </frameworkAssemblies>
+  </metadata>
+  <files>
+    <file src="unityplugin.dll" target="runtimes\win-x64\native" />
+    <file src="WebrtcSharp.props" target="build\net\WebrtcSharp.props" />
+  </files>
+</package>
