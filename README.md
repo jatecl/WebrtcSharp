@@ -6,9 +6,8 @@ Webrtc .Net API
     var factory = new PeerConnectionFactory();
     var configuration = new RTCConfiguration();
     configuration.AddServer("stun:stun.l.google.com:19302");
-    var observe = new PeerConnectionObserve();
-    var connection = factory.CreatePeerConnection(configuration, observe);
-    observe.IceCandidate += iceCandidate =>
+    var connection = factory.CreatePeerConnection(configuration);
+    connection.IceCandidate += iceCandidate =>
     {
         connection.AddIceCandidate(iceCandidate);
     };

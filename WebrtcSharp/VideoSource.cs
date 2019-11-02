@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,6 +16,133 @@ namespace WebrtcSharp
         /// 持有一个视频源
         /// </summary>
         /// <param name="handler">视频源指针</param>
-        public VideoSource(IntPtr handler) : base(handler) { }
+        public VideoSource(IntPtr handler, IDispatcher dispatcher) : base(handler)
+        {
+            Dispatcher = dispatcher;
+            NativeDataReady = val => OnDataReady(val);
+        }
+        /// <summary>
+        /// 当前轨道监听器
+        /// </summary>
+        private WebrtcObject sink;
+        /// <summary>
+        /// C++持有的视频数据监听回调
+        /// </summary>
+        private WebrtcUnityResultCallback NativeDataReady;
+        /// <summary>
+        /// 同步执行
+        /// </summary>
+        public IDispatcher Dispatcher { get; }
+
+        /// <summary>
+        /// 私有的收到视频帧事件
+        /// </summary>
+        private event Action<VideoFrame> FramePrivate;
+        /// <summary>
+        /// 收到视频帧事件
+        /// </summary>
+        public event Action<VideoFrame> Frame
+        {
+            add
+            {
+                AddSink();
+                FramePrivate += value;
+            }
+            remove
+            {
+                FramePrivate -= value;
+                if (FramePrivate == null) RemoveSink();
+            }
+        }
+        /// <summary>
+        /// 添加监听器
+        /// </summary>
+        private void AddSink()
+        {
+            if (sink != null) return;
+            IntPtr ptr = default;
+            Dispatcher.Invoke(() => ptr = VideoSource_AddSink(Handler, NativeDataReady));
+            if (ptr == IntPtr.Zero) throw new Exception("AddSink C++ Error");
+            sink = new WebrtcObject(ptr);
+        }
+        /// <summary>
+        /// 删除监听器
+        /// </summary>
+        private void RemoveSink()
+        {
+            if (sink == null) return;
+            Dispatcher.Invoke(() => VideoSource_RemoveSink(Handler, sink.Handler));
+            sink = null;
+        }
+        /// <summary>
+        /// 在销毁时，先删除监听器
+        /// </summary>
+        public override void Release()
+        {
+            if (Handler == IntPtr.Zero) return;
+            RemoveSink();
+            Dispatcher.Invoke(() => base.Release());
+        }
+        /// <summary>
+        /// 处理收到的视频帧
+        /// </summary>
+        /// <param name="val">视频帧指针</param>
+        private unsafe void OnDataReady(IntPtr val)
+        {
+            if (FramePrivate == null) return;
+            void** ptrs = (void**)val.ToPointer();
+            byte* datay = (byte*)*ptrs;
+            ++ptrs;
+            byte* datau = (byte*)*ptrs;
+            ++ptrs;
+            byte* datav = (byte*)*ptrs;
+            ++ptrs;
+            byte* dataa = (byte*)*ptrs;
+            ++ptrs;
+            int stridey = *(int*)*ptrs;
+            ++ptrs;
+            int strideu = *(int*)*ptrs;
+            ++ptrs;
+            int stridev = *(int*)*ptrs;
+            ++ptrs;
+            int stridea = *(int*)*ptrs;
+            ++ptrs;
+            int width = *(int*)*ptrs;
+            ++ptrs;
+            int height = *(int*)*ptrs;
+            ++ptrs;
+            int rotation = *(int*)*ptrs;
+            ++ptrs;
+            long time = *(long*)*ptrs;
+            ++ptrs;
+            FramePrivate.Invoke(new VideoFrame
+            {
+                DataY = new IntPtr(datay),
+                DataU = new IntPtr(datau),
+                DataV = new IntPtr(datav),
+                DataA = new IntPtr(dataa),
+                StrideY = stridey,
+                StrideU = strideu,
+                StrideV = stridev,
+                StrideA = stridea,
+                Width = width,
+                Height = height,
+                Rotation = rotation,
+                Timestamp = time
+            });
+        }
+        /// <summary>
+        /// C++ API：添加监听器
+        /// </summary>
+        /// <param name="ptr">视频媒体轨道指针</param>
+        /// <param name="onI420FrameReady">收到视频的回调函数</param>
+        /// <returns>监听器指针</returns>
+        [DllImport(UnityPluginDll)] internal static extern IntPtr VideoSource_AddSink(IntPtr ptr, WebrtcUnityResultCallback onI420FrameReady);
+        /// <summary>
+        /// C++ API：删除监听器
+        /// </summary>
+        /// <param name="ptr">视频媒体轨道指针</param>
+        /// <param name="sink">监听器指针</param>
+        [DllImport(UnityPluginDll)] internal static extern void VideoSource_RemoveSink(IntPtr ptr, IntPtr sink);
     }
 }

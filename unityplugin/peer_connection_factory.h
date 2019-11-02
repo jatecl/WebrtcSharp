@@ -10,6 +10,7 @@ extern "C" {
 	__declspec(dllexport) void* PeerConnectionFactory_CreateAudioTrack(void* ptr, const char* label, void* source);
 	__declspec(dllexport) void* PeerConnectionFactory_CreateVideoSource(void* ptr, int index, int width, int height, int fps);
 	__declspec(dllexport) void* PeerConnectionFactory_CreateAudioSource(void* ptr);
+	__declspec(dllexport) void PeerConnectionFactory_SignalingThreadInvoke(void* ptr, WebrtcUnityCallback callback);
 }
 
 class PeerConnectionFactoryPointer : public rtc::RefCountedObject<rtc::RefCountInterface> {

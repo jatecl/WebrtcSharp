@@ -16,10 +16,11 @@ namespace WebrtcSharp
         /// 持有一个视频轨道
         /// </summary>
         /// <param name="ptr">视频轨道指针</param>
-        public VideoTrack(IntPtr ptr) : base(ptr)
+        public VideoTrack(IntPtr ptr, IDispatcher dispatcher) : base(ptr, dispatcher)
         {
             NativeDataReady = val => OnDataReady(val);
         }
+
         /// <summary>
         /// C++持有的视频数据监听回调
         /// </summary>
@@ -54,7 +55,10 @@ namespace WebrtcSharp
         private void AddSink()
         {
             if (sink != null) return;
-            sink = Create<WebrtcObject>(VideoTrack_AddSink(Handler, NativeDataReady));
+            IntPtr ptr = default;
+            Dispatcher.Invoke(() => ptr = VideoTrack_AddSink(Handler, NativeDataReady));
+            if (ptr == IntPtr.Zero) throw new Exception("AddSink C++ Error");
+            sink = new WebrtcObject(ptr);
         }
         /// <summary>
         /// 删除监听器
@@ -62,16 +66,17 @@ namespace WebrtcSharp
         private void RemoveSink()
         {
             if (sink == null) return;
-            VideoTrack_RemoveSink(Handler, sink.Handler);
+            Dispatcher.Invoke(() => VideoTrack_RemoveSink(Handler, sink.Handler));
             sink = null;
         }
         /// <summary>
         /// 在销毁时，先删除监听器
         /// </summary>
-        protected override void Delete()
+        public override void Release()
         {
+            if (Handler == IntPtr.Zero) return;
             RemoveSink();
-            base.Delete();
+            Dispatcher.Invoke(() => base.Release());
         }
         /// <summary>
         /// 处理收到的视频帧

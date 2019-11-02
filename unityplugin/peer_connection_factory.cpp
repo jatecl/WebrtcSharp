@@ -156,7 +156,7 @@ void* PeerConnectionFactory_CreateVideoSource(void* ptr, int index, int width, i
 {
 	auto source = CapturerTrackSource::Create(index, width, height, fps);
 	if (source) source->AddRef();
-	return source;
+	return source.get();
 }
 
 void* PeerConnectionFactory_CreateAudioSource(void* ptr)
@@ -166,6 +166,12 @@ void* PeerConnectionFactory_CreateAudioSource(void* ptr)
 	auto source = factory->factory->CreateAudioSource(option);
 	source->AddRef();
 	return source.get();
+}
+
+void PeerConnectionFactory_SignalingThreadInvoke(void* ptr, WebrtcUnityCallback callback)
+{
+	auto factory = (PeerConnectionFactoryPointer*)(ptr);
+	factory->signaling_thread->Invoke<void>(RTC_FROM_HERE, callback);
 }
 
 

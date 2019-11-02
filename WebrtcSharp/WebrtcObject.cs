@@ -41,9 +41,9 @@ namespace WebrtcSharp
         /// </summary>
         protected internal IntPtr Handler { get; protected set; }
         /// <summary>
-        /// 删除c++中指针对应的对象
+        /// 删除c++中指针对应的对象.慎用
         /// </summary>
-        protected virtual void Delete()
+        public virtual void Release()
         {
             if (Handler != IntPtr.Zero)
             {
@@ -66,24 +66,18 @@ namespace WebrtcSharp
         /// <typeparam name="T">对象类型</typeparam>
         /// <param name="handler">指针</param>
         /// <returns>如果指针为空，就返回空；否则返回对应的对象</returns>
-        public static T Create<T>(IntPtr handler, bool cache = false) where T : WebrtcObject
+        public static T UniqueNative<T>(IntPtr handler) where T : WebrtcObject
         {
             if (handler == IntPtr.Zero) return null;
-            if (cache)
+            var key = handler.ToInt64();
+            lock (senderCache)
             {
-                lock (senderCache)
-                {
-                    var key = handler.ToInt64();
-                    if (senderCache.ContainsKey(key)) return (T)senderCache[key];
-                    var val = Create<T>(handler);
-                    val.BeforeDelete += Val_BeforeDelete;
-                    senderCache[key] = val;
-                    return val;
-                }
+                if (senderCache.ContainsKey(key)) return (T)senderCache[key];
+                var val = (T)Activator.CreateInstance(typeof(T), handler);
+                val.BeforeDelete += Val_BeforeDelete;
+                senderCache[key] = val;
+                return val;
             }
-            var constructor = typeof(T).GetConstructor(new Type[] { typeof(IntPtr) });
-            if (constructor == null) throw new Exception("不能用Create方法创建类型" + typeof(T).Name);
-            return (T)constructor.Invoke(new object[] { handler });
         }
         /// <summary>
         /// 检查删除指针时，是否需要从缓存里面干掉
@@ -111,11 +105,7 @@ namespace WebrtcSharp
         /// </summary>
         ~WebrtcObject()
         {
-            if (Handler != IntPtr.Zero)
-            {
-                Delete();
-                Handler = IntPtr.Zero;
-            }
+            Release();
         }
         /// <summary>
         /// C++ API：销毁C++指针对象

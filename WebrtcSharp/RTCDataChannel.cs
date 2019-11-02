@@ -59,7 +59,8 @@ namespace WebrtcSharp
         /// <param name="buffer">消息数据</param>
         private unsafe void OnMessage(IntPtr buffer)
         {
-            var arr = Create<PointerArray>(buffer);
+            if (buffer == IntPtr.Zero) return;
+            var arr = new PointerArray(buffer);
             var ptr = arr.GetBuffer();
             int length = *(int*)*ptr;
             ++ptr;
@@ -98,10 +99,10 @@ namespace WebrtcSharp
         /// <summary>
         /// 销毁前被调用
         /// </summary>
-        protected override void Delete()
+        public override void Release()
         {
-            RTCDataChannel_UnregisterObserver(this.Handler);
-            base.Delete();
+            if (Handler != IntPtr.Zero) RTCDataChannel_UnregisterObserver(this.Handler);
+            base.Release();
         }
         /// <summary>
         /// 状态变化
@@ -134,7 +135,8 @@ namespace WebrtcSharp
             get
             {
                 var proxyPtr = RTCDataChannel_Label(Handler);
-                var buffer = Create<PointerArray>(proxyPtr);
+                if (proxyPtr == IntPtr.Zero) return null;
+                var buffer = new PointerArray(proxyPtr);
                 unsafe
                 {
                     byte** pointer = (byte**)buffer.GetBuffer();

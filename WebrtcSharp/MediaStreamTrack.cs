@@ -26,7 +26,10 @@ namespace WebrtcSharp
         /// 持有一个媒体轨道
         /// </summary>
         /// <param name="handler">媒体轨道指针</param>
-        public MediaStreamTrack(IntPtr handler) : base(handler) { }
+        public MediaStreamTrack(IntPtr handler, IDispatcher dispatcher) : base(handler)
+        {
+            this.Dispatcher = dispatcher;
+        }
         /// <summary>
         /// 轨道的媒体类型
         /// </summary>
@@ -38,18 +41,15 @@ namespace WebrtcSharp
         {
             get
             {
-                return MediaStreamTrack_GetEnabled(Handler);
+                bool enabled = false;
+                Dispatcher.Invoke(() => enabled = MediaStreamTrack_GetEnabled(Handler));
+                return enabled;
             }
             set
             {
-                MediaStreamTrack_SetEnabled(Handler, value);
-                EnabledChanged?.Invoke(this, value);
+                Dispatcher.Invoke(() => MediaStreamTrack_SetEnabled(Handler, value));
             }
         }
-        /// <summary>
-        /// 可用状态发生变化时
-        /// </summary>
-        public event Action<MediaStreamTrack, bool> EnabledChanged;
         /// <summary>
         /// 轨道是否已结束
         /// </summary>
@@ -57,9 +57,16 @@ namespace WebrtcSharp
         {
             get
             {
-                return (TrackState)MediaStreamTrack_GetState(Handler);
+                TrackState state = default;
+                Dispatcher.Invoke(() => state = (TrackState)MediaStreamTrack_GetState(Handler));
+                return state;
             }
         }
+        /// <summary>
+        /// 同步执行
+        /// </summary>
+        public IDispatcher Dispatcher { get; }
+
         /// <summary>
         /// C++ API：获得媒体轨道类型
         /// </summary>

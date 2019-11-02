@@ -15,7 +15,7 @@ namespace WebrtcSharp
         /// <summary>
         /// 创建一个自定义帧的音频源
         /// </summary>
-        public FrameAudioSource() : base(FrameAudioSource_new()) { }
+        public FrameAudioSource(IDispatcher dispatcher) : base(FrameAudioSource_new(), dispatcher) { }
         /// <summary>
         /// 写入音频帧
         /// </summary>

@@ -101,6 +101,13 @@ extern "C" {
 	__declspec(dllexport) int MediaStreamTrack_GetState(void* ptr);
 	__declspec(dllexport) void MediaStreamTrack_SetEnabled(void* ptr, bool enabled);
 
+
+	__declspec(dllexport) void* VideoSource_AddSink(void* ptr, WebrtcUnityResultCallback onI420FrameReady);
+	__declspec(dllexport) void VideoSource_RemoveSink(void* ptr, void* sink);
+
+	__declspec(dllexport) void* AudioSource_AddSink(void* ptr, WebrtcUnityResultCallback onDataReady);
+	__declspec(dllexport) void AudioSource_RemoveSink(void* ptr, void* sink);
+
 	__declspec(dllexport) void* VideoTrack_AddSink(void* ptr, WebrtcUnityResultCallback onI420FrameReady);
 	__declspec(dllexport) void VideoTrack_RemoveSink(void* ptr, void* sink);
 

@@ -90,7 +90,6 @@
     <Compile Include="MediaStreamTrack.cs" />
     <Compile Include="PeerConnectionFactory.cs" />
     <Compile Include="PeerConnection.cs" />
-    <Compile Include="PeerConnectionObserve.cs" />
     <Compile Include="Promise.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RTCConfiguration.cs" />

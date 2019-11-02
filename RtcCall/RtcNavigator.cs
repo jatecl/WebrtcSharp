@@ -39,12 +39,12 @@ namespace Relywisdom
             VideoDeviceCapabilities cap = null;
             if (caps.Length > 0) cap = caps[0];
             else cap = new VideoDeviceCapabilities
-                {
-                    Width = 640,
-                    Height = 480,
-                    Fps = 30
-                };
-            return createVideoTrack(createVideoSource(source, cap.Width - 1, cap.Height - 1, 15) ?? new FrameVideoSource());
+            {
+                Width = 640,
+                Height = 480,
+                Fps = 30
+            };
+            return createVideoTrack(createVideoSource(source, cap.Width - 1, cap.Height - 1, 15) ?? createFrameVideoSource());
         }
 
         /// <summary>
@@ -81,9 +81,9 @@ namespace Relywisdom
         /// <param name="configuration">连接设置</param>
         /// <param name="observe">事件捕获器</param>
         /// <returns>P2P连接</returns>
-        public static PeerConnection createPeerConnection(RTCConfiguration configuration, PeerConnectionObserve observe)
+        public static PeerConnection createPeerConnection(RTCConfiguration configuration)
         {
-            return Facotry.CreatePeerConnection(configuration, observe);
+            return Facotry.CreatePeerConnection(configuration);
         }
         /// <summary>
         /// 创建视频轨道
@@ -116,20 +116,23 @@ namespace Relywisdom
         public static VideoSource createVideoSource(string name, int width, int height, int fps)
         {
             var index = GetVideoIndexByName(name);
-            /*
-            var caps = PeerConnectionFactory.GetDeviceCapabilities(index);
-            caps = caps.OrderBy(c => c.Width * c.Height).ToArray();
-            foreach (var c in caps)
-            {
-                if (c.Width >= width || c.Height >= height) {
-                    width = c.Width;
-                    height = c.Height;
-                    fps = c.Fps;
-                    break;
-                }
-            }
-            */
             return Facotry.CreateVideoSource(index, width, height, fps);
+        }
+        /// <summary>
+        /// 创建逐帧视频源
+        /// </summary>
+        /// <returns>视频源</returns>
+        public static FrameVideoSource createFrameVideoSource()
+        {
+            return Facotry.CreateFrameVideoSource();
+        }
+        /// <summary>
+        /// 创建逐帧音频源
+        /// </summary>
+        /// <returns>音频源</returns>
+        public static FrameAudioSource createFrameAudioSource()
+        {
+            return Facotry.CreateFrameAudioSource();
         }
 
         private static int GetVideoIndexByName(string name)

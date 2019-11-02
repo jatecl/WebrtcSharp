@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebrtcSharp
@@ -30,6 +31,17 @@ namespace WebrtcSharp
         BGRA,
     };
     /// <summary>
+    /// 同步执行器
+    /// </summary>
+    public interface IDispatcher
+    {
+        /// <summary>
+        /// 执行
+        /// </summary>
+        /// <param name="action">要执行的方法</param>
+        void Invoke(Action action);
+    }
+    /// <summary>
     /// p2p连接创建器
     /// </summary>
     public class PeerConnectionFactory : WebrtcObject
@@ -37,19 +49,65 @@ namespace WebrtcSharp
         /// <summary>
         /// 创建一个P2P连接创建器
         /// </summary>
-        public PeerConnectionFactory() : base(PeerConnectionFactory_new()) { }
+        public PeerConnectionFactory() : base(PeerConnectionFactory_new())
+        {
+            SignalingThread = new SignalingThreadDispatcher(this);
+        }
+        /// <summary>
+        /// 信令线程
+        /// </summary>
+        private class SignalingThreadDispatcher : IDispatcher
+        {
+            /// <summary>
+            /// 所属创建器
+            /// </summary>
+            private PeerConnectionFactory factory;
+            /// <summary>
+            /// 创建信令线程执行器
+            /// </summary>
+            /// <param name="factory">所属创建器</param>
+            public SignalingThreadDispatcher(PeerConnectionFactory factory)
+            {
+                this.factory = factory;
+            }
+            /// <summary>
+            /// 执行
+            /// </summary>
+            /// <param name="action">要执行的方法</param>
+            public void Invoke(Action action)
+            {
+                if (factory.Handler == IntPtr.Zero) return;
+                WebrtcUnityCallback native = () => action();
+                var holder = new UnmanageHolder();
+                holder.Hold(native);
+                PeerConnectionFactory_SignalingThreadInvoke(factory.Handler, native);
+                holder.StillHere();
+            }
+            /// <summary>
+            /// C++ API：在信令线程上执行
+            /// </summary>
+            /// <param name="ptr">创建器指针</param>
+            /// <param name="callback">要执行的方法</param>
+            [DllImport(UnityPluginDll)] internal static extern void PeerConnectionFactory_SignalingThreadInvoke(IntPtr ptr, WebrtcUnityCallback callback);
+        }
+        /// <summary>
+        /// 信令线程
+        /// </summary>
+        public IDispatcher SignalingThread { get; }
         /// <summary>
         /// 创建一个P2P连接
         /// </summary>
         /// <param name="configuration">连接设置</param>
         /// <param name="observe">事件捕获器</param>
         /// <returns>P2P连接</returns>
-        public PeerConnection CreatePeerConnection(RTCConfiguration configuration, PeerConnectionObserve observe)
+        public PeerConnection CreatePeerConnection(RTCConfiguration configuration)
         {
             try
             {
-                var handle = PeerConnectionFactory_CreatePeerConnection(Handler, configuration.Handler, observe == null ? default : observe.Handler);
-                return Create<PeerConnection>(handle);
+                var observe = new PeerConnection.PeerConnectionObserver();
+                var handle = PeerConnectionFactory_CreatePeerConnection(Handler, configuration.Handler, observe.Handler);
+                if (handle == IntPtr.Zero) return null;
+                return new PeerConnection(handle, SignalingThread, observe);
             }
             catch (Exception exp)
             {
@@ -65,7 +123,10 @@ namespace WebrtcSharp
         /// <returns></returns>
         public VideoTrack CreateVideoTrack(string label, VideoSource source)
         {
-            return Create<VideoTrack>(PeerConnectionFactory_CreateVideoTrack(Handler, label, source.Handler));
+            IntPtr ptr = default;
+            SignalingThread.Invoke(() => ptr = PeerConnectionFactory_CreateVideoTrack(Handler, label, source.Handler));
+            if (ptr == IntPtr.Zero) return null;
+            return new VideoTrack(ptr, this.SignalingThread);
         }
         /// <summary>
         /// 创建音频轨道
@@ -75,7 +136,10 @@ namespace WebrtcSharp
         /// <returns></returns>
         public AudioTrack CreateAudioTrack(string label, AudioSource source)
         {
-            return Create<AudioTrack>(PeerConnectionFactory_CreateAudioTrack(Handler, label, source.Handler));
+            IntPtr ptr = default;
+            SignalingThread.Invoke(() => ptr = PeerConnectionFactory_CreateAudioTrack(Handler, label, source.Handler));
+            if (ptr == IntPtr.Zero) return null;
+            return new AudioTrack(ptr, this.SignalingThread);
         }
         /// <summary>
         /// 创建视频源
@@ -87,7 +151,21 @@ namespace WebrtcSharp
         /// <returns>视频源</returns>
         public VideoSource CreateVideoSource(int index, int width, int height, int fps)
         {
-            return Create<VideoSource>(PeerConnectionFactory_CreateVideoSource(Handler, index, width, height, fps));
+            IntPtr ptr = default;
+            SignalingThread.Invoke(() => ptr = PeerConnectionFactory_CreateVideoSource(Handler, index, width, height, fps));
+            if (ptr == IntPtr.Zero) return null;
+            return new VideoSource(ptr, SignalingThread);
+        }
+        /// <summary>
+        /// 创建逐帧视频源
+        /// </summary>
+        /// <returns>逐帧视频源</returns>
+        public FrameVideoSource CreateFrameVideoSource()
+        {
+            FrameVideoSource source = default;
+            SignalingThread.Invoke(() => source = new FrameVideoSource(this.SignalingThread));
+            if (source.Handler == IntPtr.Zero) return null;
+            return source;
         }
         /// <summary>
         /// 创建音频源
@@ -95,7 +173,21 @@ namespace WebrtcSharp
         /// <returns>音频源</returns>
         public AudioSource CreateAudioSource()
         {
-            return Create<AudioSource>(PeerConnectionFactory_CreateAudioSource(Handler));
+            IntPtr ptr = default;
+            SignalingThread.Invoke(() => ptr = PeerConnectionFactory_CreateAudioSource(Handler));
+            if (ptr == IntPtr.Zero) return null;
+            return new AudioSource(ptr, SignalingThread);
+        }
+        /// <summary>
+        /// 创建音频源
+        /// </summary>
+        /// <returns>音频源</returns>
+        public FrameAudioSource CreateFrameAudioSource()
+        {
+            FrameAudioSource source = default;
+            SignalingThread.Invoke(() => source = new FrameAudioSource(SignalingThread));
+            if (source.Handler == IntPtr.Zero) return null;
+            return source;
         }
         /// <summary>
         /// 获取所有视频设备
@@ -106,7 +198,8 @@ namespace WebrtcSharp
             try
             {
                 var ptrs = PeerConnectionFactory_GetDeviceInfo();
-                var buffer = Create<PointerArray>(ptrs);
+                if (ptrs == null) return new VideoDeviceInfo[0];
+                var buffer = new PointerArray(ptrs);
                 byte** pointer = (byte**)buffer.GetBuffer();
                 byte** it = pointer;
                 var list = new List<VideoDeviceInfo>();
@@ -148,7 +241,8 @@ namespace WebrtcSharp
             try
             {
                 var ptrs = PeerConnectionFactory_GetDeviceCapabilities(index);
-                var buffer = Create<PointerArray>(ptrs);
+                if (ptrs == IntPtr.Zero) return new VideoDeviceCapabilities[0];
+                var buffer = new PointerArray(ptrs);
                 byte** pointer = (byte**)buffer.GetBuffer();
                 byte** it = pointer;
                 var list = new List<VideoDeviceCapabilities>();

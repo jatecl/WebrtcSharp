@@ -38,7 +38,7 @@ namespace WebrtcSharp
         /// 创建媒体轨道
         /// </summary>
         /// <param name="handler"></param>
-        public UnkownMediaStreamTrack(IntPtr handler) : base(handler) { }
+        public UnkownMediaStreamTrack(IntPtr handler, IDispatcher dispatcher) : base(handler, dispatcher) { }
         /// <summary>
         /// 媒体类型
         /// </summary>
@@ -65,20 +65,23 @@ namespace WebrtcSharp
         /// 持有一个数据接收器
         /// </summary>
         /// <param name="handler">数据接收器指针</param>
-        public RtpReceiver(IntPtr handler) : base(handler)
+        public RtpReceiver(IntPtr handler, IDispatcher dispatcher) : base(handler)
         {
             var track = RtpReceiver_GetMediaStreamTrack(handler);
-            var proxyPtr = MediaStreamTrack.MediaStreamTrack_GetKind(track);
-            var buffer = Create<PointerArray>(proxyPtr);
+            if (track == IntPtr.Zero) throw new Exception("无法获取媒体轨道");
+            IntPtr proxyPtr = default;
+            dispatcher.Invoke(() => proxyPtr = MediaStreamTrack.MediaStreamTrack_GetKind(track));
+            if (proxyPtr == IntPtr.Zero) throw new Exception("无法获取媒体类型");
+            var buffer = new PointerArray(proxyPtr);
             unsafe
             {
                 byte** pointer = (byte**)buffer.GetBuffer();
                 var kind = new string((sbyte*)*pointer);
-                if (kind == "video") Track = Create<VideoTrack>(track);
-                else if (kind == "audio") Track = Create<AudioTrack>(track);
+                if (kind == "video") Track = new VideoTrack(track, dispatcher);
+                else if (kind == "audio") Track = new AudioTrack(track, dispatcher);
                 else
                 {
-                    var unkown = Create<UnkownMediaStreamTrack>(track);
+                    var unkown = new UnkownMediaStreamTrack(track, dispatcher);
                     unkown.SetKind(kind);
                     Track = unkown;
                 }

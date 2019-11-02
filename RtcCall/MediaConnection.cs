@@ -69,10 +69,6 @@ namespace Relywisdom
         /// P2P连接
         /// </summary>
         private PeerConnection connection;
-        /// <summary>
-        /// P2P事件监听
-        /// </summary>
-        private PeerConnectionObserve observe;
         /**
          * 创建一个P2P连接
          * @param {RemoteMedia}} remote 远程媒体
@@ -85,10 +81,9 @@ namespace Relywisdom
             {
                 config.AddServer(c.urls, c.username, c.credential);
             }
-            observe = new PeerConnectionObserve();
-            this.connection = RtcNavigator.createPeerConnection(config, observe);
+            this.connection = RtcNavigator.createPeerConnection(config);
             //当需要发送candidate的时候
-            this.observe.IceCandidate += evt =>
+            this.connection.IceCandidate += evt =>
             {
                 this.socket.send(new
                 {
@@ -104,19 +99,19 @@ namespace Relywisdom
                 });
             };
             //如果支持新的api，当收到track
-            this.observe.AddTrack += evt =>
+            this.connection.TrackAdded += evt =>
             {
                 this._tracks[evt.Track.Kind] = evt.Track;
                 this._emitAddTrack();
             };
             //当媒体流被移除时
-            this.observe.RemoveTrack += evt =>
+            this.connection.TrackRemoved += evt =>
             {
                 this._tracks.Remove(evt.Track.Kind);
                 this._emitAddTrack();
             };
             //当连接状态发生改变时
-            this.observe.IceConnectionChange += state =>
+            this.connection.IceConnectionChange += state =>
             {
                 this.iceConnectionState = state;
                 //new, checking, connected, completed, failed, disconnected, closed;
@@ -137,7 +132,7 @@ namespace Relywisdom
                 this.StateChanged?.Invoke(name);
                 this._clearchecker();
             };
-            this.observe.DataChannel += channel =>
+            this.connection.DataChannel += channel =>
             {
                 this._registerDataChannel(channel);
             };

@@ -16,7 +16,7 @@ namespace WebrtcSharp
         /// 持有一个音频轨道
         /// </summary>
         /// <param name="handler"></param>
-        public AudioTrack(IntPtr handler) : base(handler)
+        public AudioTrack(IntPtr handler, IDispatcher dispatcher) : base(handler, dispatcher)
         {
             DataReadyCallback = ptr => this.OnDataReady(ptr);
         }
@@ -46,7 +46,10 @@ namespace WebrtcSharp
         private void AddSink()
         {
             if (sink != null) return;
-            sink = Create<WebrtcObject>(AudioTrack_AddSink(Handler, DataReadyCallback));
+            IntPtr ptr = default;
+            Dispatcher.Invoke(() => ptr = AudioTrack_AddSink(Handler, DataReadyCallback));
+            if (ptr == IntPtr.Zero) throw new Exception("AddSink C++ Error");
+            sink = new WebrtcObject(ptr);
         }
         /// <summary>
         /// 从C++移除监听器
@@ -54,17 +57,19 @@ namespace WebrtcSharp
         private void RemoveSink()
         {
             if (sink == null) return;
-            AudioTrack_RemoveSink(Handler, sink.Handler);
+            Dispatcher.Invoke(() => AudioTrack_RemoveSink(Handler, sink.Handler));
             sink = null;
         }
         /// <summary>
         /// 在销毁前移除监听器
         /// </summary>
-        protected override void Delete()
+        public override void Release()
         {
+            if (Handler == IntPtr.Zero) return;
             RemoveSink();
-            base.Delete();
+            Dispatcher.Invoke(() => base.Release());
         }
+
         /// <summary>
         /// 收到音频数据的回调的C++包装
         /// </summary>

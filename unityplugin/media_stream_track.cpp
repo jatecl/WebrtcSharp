@@ -176,6 +176,47 @@ void MediaStreamTrack_SetEnabled(void* ptr, bool enabled)
 	track->set_enabled(enabled);
 }
 
+void* VideoSource_AddSink(void* ptr, WebrtcUnityResultCallback onI420FrameReady)
+{
+	auto observer = new rtc::RefCountedObject<VideoObserver>();
+	observer->OnI420FrameReady = onI420FrameReady;
+
+	webrtc::VideoTrackSource* videoTrack = (webrtc::VideoTrackSource*)(ptr);
+	videoTrack->AddOrUpdateSink(observer, rtc::VideoSinkWants());
+
+	observer->AddRef();
+	return observer;
+}
+
+void VideoSource_RemoveSink(void* ptr, void* sink)
+{
+	auto track = (webrtc::VideoTrackSource*)(ptr);
+	auto sinkTyped = (VideoObserver*)sink;
+	track->RemoveSink(sinkTyped);
+	sinkTyped->OnI420FrameReady = nullptr;
+}
+
+void* AudioSource_AddSink(void* ptr, WebrtcUnityResultCallback onDataReady)
+{
+	auto observer = new rtc::RefCountedObject<AudioObserver>();
+	observer->OnDataReady = onDataReady;
+
+	webrtc::AudioSourceInterface* audioTrack =
+		(webrtc::AudioSourceInterface*)(ptr);
+	audioTrack->AddSink(observer);
+
+	observer->AddRef();
+	return observer;
+}
+
+void AudioSource_RemoveSink(void* ptr, void* sink)
+{
+	auto track = (webrtc::AudioSourceInterface*)(ptr);
+	auto sinkTyped = (AudioObserver*)sink;
+	track->RemoveSink(sinkTyped);
+	sinkTyped->OnDataReady = nullptr;
+}
+
 void* VideoTrack_AddSink(void* ptr, WebrtcUnityResultCallback onI420FrameReady)
 {
 	auto observer = new rtc::RefCountedObject<VideoObserver>();
