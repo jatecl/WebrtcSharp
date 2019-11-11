@@ -16,9 +16,8 @@ namespace WebrtcSharp
         /// 持有一个音频源
         /// </summary>
         /// <param name="handler">音频源指针</param>
-        public AudioSource(IntPtr handler, IDispatcher dispatcher) : base(handler)
+        internal protected AudioSource(IntPtr handler) : base(handler)
         {
-            this.Dispatcher = dispatcher;
             DataReadyCallback = ptr => this.OnDataReady(ptr);
         }
 
@@ -49,21 +48,27 @@ namespace WebrtcSharp
         /// <summary>
         /// 添加监听器到C++
         /// </summary>
-        private void AddSink()
+        protected virtual void AddSink()
         {
             if (sink != null) return;
-            IntPtr ptr = default;
-            Dispatcher.Invoke(() => ptr = AudioSource_AddSink(Handler, DataReadyCallback));
+            IntPtr ptr = AudioSource_AddSink(Handler, DataReadyCallback);
             if (ptr == IntPtr.Zero) throw new Exception("AddSink C++ Error");
-            sink = new WebrtcObject(ptr);
+            sink = new WebrtcObjectRef(ptr, "AudioSource Sink");
         }
         /// <summary>
         /// 从C++移除监听器
         /// </summary>
-        private void RemoveSink()
+        protected virtual void RemoveSink()
+        {
+            RemoveSinkPrivate();
+        }
+        /// <summary>
+        /// 从C++移除监听器
+        /// </summary>
+        private void RemoveSinkPrivate()
         {
             if (sink == null) return;
-            Dispatcher.Invoke(() => AudioSource_RemoveSink(Handler, sink.Handler));
+            AudioSource_RemoveSink(Handler, sink.Handler);
             sink = null;
         }
         /// <summary>
@@ -72,13 +77,9 @@ namespace WebrtcSharp
         public override void Release()
         {
             if (Handler == IntPtr.Zero) return;
-            RemoveSink();
-            Dispatcher.Invoke(() => base.Release());
+            RemoveSinkPrivate();
+            base.Release();
         }
-        /// <summary>
-        /// 同步执行
-        /// </summary>
-        public IDispatcher Dispatcher { get; }
 
         /// <summary>
         /// 收到音频数据的回调的C++包装

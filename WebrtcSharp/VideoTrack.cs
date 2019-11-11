@@ -16,7 +16,7 @@ namespace WebrtcSharp
         /// 持有一个视频轨道
         /// </summary>
         /// <param name="ptr">视频轨道指针</param>
-        public VideoTrack(IntPtr ptr, IDispatcher dispatcher) : base(ptr, dispatcher)
+        internal protected VideoTrack(IntPtr ptr, IDispatcher dispatcher) : base(ptr, dispatcher)
         {
             NativeDataReady = val => OnDataReady(val);
         }
@@ -58,7 +58,7 @@ namespace WebrtcSharp
             IntPtr ptr = default;
             Dispatcher.Invoke(() => ptr = VideoTrack_AddSink(Handler, NativeDataReady));
             if (ptr == IntPtr.Zero) throw new Exception("AddSink C++ Error");
-            sink = new WebrtcObject(ptr);
+            sink = new WebrtcObjectRef(ptr, "VideoTrack Sink");
         }
         /// <summary>
         /// 删除监听器

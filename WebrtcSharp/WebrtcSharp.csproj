@@ -76,6 +76,8 @@
     <Compile Include="AudioTrack.cs" />
     <Compile Include="FrameVideoSource.cs" />
     <Compile Include="IceCandidate.cs" />
+    <Compile Include="VideoSource.cs" />
+    <Compile Include="NativeAudioSource.cs" />
     <Compile Include="RTCDataChannel.cs" />
     <Compile Include="RTCDataChannelOptions.cs" />
     <Compile Include="RtpReceiver.cs" />
@@ -84,7 +86,7 @@
     <Compile Include="VideoDeviceCapabilities.cs" />
     <Compile Include="VideoDeviceInfo.cs" />
     <Compile Include="VideoFrame.cs" />
-    <Compile Include="VideoSource.cs" />
+    <Compile Include="NativeVideoSource.cs" />
     <Compile Include="AudioSource.cs" />
     <Compile Include="FrameAudioSource.cs" />
     <Compile Include="MediaStreamTrack.cs" />

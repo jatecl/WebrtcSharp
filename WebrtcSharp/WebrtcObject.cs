@@ -34,7 +34,7 @@ namespace WebrtcSharp
     /// <summary>
     /// dll指针对象
     /// </summary>
-    public class WebrtcObject
+    public abstract class WebrtcObject
     {
         /// <summary>
         /// 指针
@@ -69,11 +69,22 @@ namespace WebrtcSharp
         public static T UniqueNative<T>(IntPtr handler) where T : WebrtcObject
         {
             if (handler == IntPtr.Zero) return null;
+            return UniqueNative(handler, () => (T)Activator.CreateInstance(typeof(T), handler));
+        }
+        /// <summary>
+        /// 创建一个指针对象
+        /// </summary>
+        /// <typeparam name="T">对象类型</typeparam>
+        /// <param name="handler">指针</param>
+        /// <returns>如果指针为空，就返回空；否则返回对应的对象</returns>
+        public static T UniqueNative<T>(IntPtr handler, Func<T> creator) where T : WebrtcObject
+        {
+            if (handler == IntPtr.Zero) return null;
             var key = handler.ToInt64();
             lock (senderCache)
             {
                 if (senderCache.ContainsKey(key)) return (T)senderCache[key];
-                var val = (T)Activator.CreateInstance(typeof(T), handler);
+                var val = creator();
                 val.BeforeDelete += Val_BeforeDelete;
                 senderCache[key] = val;
                 return val;
@@ -96,7 +107,7 @@ namespace WebrtcSharp
         /// 创建一个C++指针对象
         /// </summary>
         /// <param name="handler">指针</param>
-        public WebrtcObject(IntPtr handler)
+        internal protected WebrtcObject(IntPtr handler)
         {
             Handler = handler;
         }
@@ -117,5 +128,21 @@ namespace WebrtcSharp
         /// C++ API所在dll
         /// </summary>
         public const string UnityPluginDll = "unityplugin.dll";
+    }
+
+    /// <summary>
+    /// 命名的dll指针对象
+    /// </summary>
+    internal class WebrtcObjectRef : WebrtcObject
+    {
+        public WebrtcObjectRef(IntPtr handler, string desc) : base(handler)
+        {
+            this.Discription = desc;
+        }
+
+        /// <summary>
+        /// 简单描述
+        /// </summary>
+        public string Discription { get; }
     }
 }

@@ -34,7 +34,7 @@ namespace ScreenShare
 
         private bool _captching = false;
         private bool _working = true;
-        private FrameVideoSource videoSource = RtcNavigator.createFrameVideoSource();
+        private FrameVideoSource videoSource = new FrameVideoSource();
 
         unsafe byte[] bitmapToYUV420(Bitmap scaled)
         {

@@ -16,7 +16,7 @@ namespace WebrtcSharp
         /// 持有一个音频轨道
         /// </summary>
         /// <param name="handler"></param>
-        public AudioTrack(IntPtr handler, IDispatcher dispatcher) : base(handler, dispatcher)
+        internal protected AudioTrack(IntPtr handler, IDispatcher dispatcher) : base(handler, dispatcher)
         {
             DataReadyCallback = ptr => this.OnDataReady(ptr);
         }
@@ -49,7 +49,7 @@ namespace WebrtcSharp
             IntPtr ptr = default;
             Dispatcher.Invoke(() => ptr = AudioTrack_AddSink(Handler, DataReadyCallback));
             if (ptr == IntPtr.Zero) throw new Exception("AddSink C++ Error");
-            sink = new WebrtcObject(ptr);
+            sink = new WebrtcObjectRef(ptr, "AudioTrack Sink");
         }
         /// <summary>
         /// 从C++移除监听器

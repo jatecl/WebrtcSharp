@@ -42,6 +42,101 @@ namespace WebrtcSharp
         void Invoke(Action action);
     }
     /// <summary>
+    /// 基于C#线程的同步执行器
+    /// </summary>
+    public class ThreadDispatcher : IDispatcher, IDisposable
+    {
+        /// <summary>
+        /// 执行
+        /// </summary>
+        /// <param name="action">要执行的方法</param>
+        public void Invoke(Action action)
+        {
+            if (action == null || !isRunning) return;
+
+            var reset = new AutoResetEvent(false);
+            reset.Reset();
+            lock (locker)
+            {
+                if (thread == null)
+                {
+                    thread = new Thread(Running);
+                    thread.Start();
+                }
+                actions.Add(() =>
+                {
+                    action();
+                    reset.Set();
+                });
+                resetEvent.Set();
+            }
+            reset.WaitOne();
+        }
+        /// <summary>
+        /// 等待执行的任务列表
+        /// </summary>
+        private List<Action> actions = new List<Action>();
+        /// <summary>
+        /// 是否需要继续执行
+        /// </summary>
+        private volatile bool isRunning = true;
+        /// <summary>
+        /// 执行通知
+        /// </summary>
+        private AutoResetEvent resetEvent = new AutoResetEvent(false);
+        /// <summary>
+        /// 执行中
+        /// </summary>
+        private void Running()
+        {
+            while (isRunning)
+            {
+                Action[] list = null;
+                lock (locker)
+                {
+                    if (actions.Count > 0)
+                    {
+                        list = actions.ToArray();
+                        actions.Clear();
+                    }
+                }
+                if (list != null)
+                {
+                    foreach (var action in list) action();
+                }
+                else
+                {
+                    resetEvent.Reset();
+                    resetEvent.WaitOne();
+                }
+            }
+        }
+        /// <summary>
+        /// 关闭
+        /// </summary>
+        public void Dispose()
+        {
+            if (!isRunning) return;
+            isRunning = false;
+            resetEvent.Close();
+        }
+        /// <summary>
+        /// 同步锁
+        /// </summary>
+        private readonly object locker = new object();
+        /// <summary>
+        /// 回收时停止线程
+        /// </summary>
+        ~ThreadDispatcher()
+        {
+            Dispose();
+        }
+        /// <summary>
+        /// 执行线程
+        /// </summary>
+        private Thread thread;
+    }
+    /// <summary>
     /// p2p连接创建器
     /// </summary>
     public class PeerConnectionFactory : WebrtcObject
@@ -94,6 +189,7 @@ namespace WebrtcSharp
         /// 信令线程
         /// </summary>
         public IDispatcher SignalingThread { get; }
+
         /// <summary>
         /// 创建一个P2P连接
         /// </summary>
@@ -126,7 +222,7 @@ namespace WebrtcSharp
             IntPtr ptr = default;
             SignalingThread.Invoke(() => ptr = PeerConnectionFactory_CreateVideoTrack(Handler, label, source.Handler));
             if (ptr == IntPtr.Zero) return null;
-            return new VideoTrack(ptr, this.SignalingThread);
+            return UniqueNative(ptr, () => new VideoTrack(ptr, this.SignalingThread));
         }
         /// <summary>
         /// 创建音频轨道
@@ -139,7 +235,7 @@ namespace WebrtcSharp
             IntPtr ptr = default;
             SignalingThread.Invoke(() => ptr = PeerConnectionFactory_CreateAudioTrack(Handler, label, source.Handler));
             if (ptr == IntPtr.Zero) return null;
-            return new AudioTrack(ptr, this.SignalingThread);
+            return UniqueNative(ptr, () => new AudioTrack(ptr, this.SignalingThread));
         }
         /// <summary>
         /// 创建视频源
@@ -154,18 +250,7 @@ namespace WebrtcSharp
             IntPtr ptr = default;
             SignalingThread.Invoke(() => ptr = PeerConnectionFactory_CreateVideoSource(Handler, index, width, height, fps));
             if (ptr == IntPtr.Zero) return null;
-            return new VideoSource(ptr, SignalingThread);
-        }
-        /// <summary>
-        /// 创建逐帧视频源
-        /// </summary>
-        /// <returns>逐帧视频源</returns>
-        public FrameVideoSource CreateFrameVideoSource()
-        {
-            FrameVideoSource source = default;
-            SignalingThread.Invoke(() => source = new FrameVideoSource(this.SignalingThread));
-            if (source.Handler == IntPtr.Zero) return null;
-            return source;
+            return UniqueNative(ptr, () => new NativeVideoSource(ptr, SignalingThread));
         }
         /// <summary>
         /// 创建音频源
@@ -176,18 +261,7 @@ namespace WebrtcSharp
             IntPtr ptr = default;
             SignalingThread.Invoke(() => ptr = PeerConnectionFactory_CreateAudioSource(Handler));
             if (ptr == IntPtr.Zero) return null;
-            return new AudioSource(ptr, SignalingThread);
-        }
-        /// <summary>
-        /// 创建音频源
-        /// </summary>
-        /// <returns>音频源</returns>
-        public FrameAudioSource CreateFrameAudioSource()
-        {
-            FrameAudioSource source = default;
-            SignalingThread.Invoke(() => source = new FrameAudioSource(SignalingThread));
-            if (source.Handler == IntPtr.Zero) return null;
-            return source;
+            return UniqueNative(ptr, () => new NativeAudioSource(ptr, SignalingThread));
         }
         /// <summary>
         /// 获取所有视频设备

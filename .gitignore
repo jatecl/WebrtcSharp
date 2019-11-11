@@ -50,3 +50,5 @@
 /WebrtcSharp/WebrtcSharp.1.0.0.nupkg
 /WebrtcSharp/*.nupkg
 /MigrationBackup
+/WebCamera/bin
+/WebCamera/obj

@@ -65,7 +65,7 @@ namespace WebrtcSharp
         /// 持有一个数据接收器
         /// </summary>
         /// <param name="handler">数据接收器指针</param>
-        public RtpReceiver(IntPtr handler, IDispatcher dispatcher) : base(handler)
+        internal protected RtpReceiver(IntPtr handler, IDispatcher dispatcher) : base(handler)
         {
             var track = RtpReceiver_GetMediaStreamTrack(handler);
             if (track == IntPtr.Zero) throw new Exception("无法获取媒体轨道");

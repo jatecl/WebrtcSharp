@@ -1,24 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WebrtcSharp
 {
-    /// <summary>
-    /// 视频源
-    /// </summary>
-    public class VideoSource : WebrtcObject
+    public abstract class VideoSource : WebrtcObject
     {
-        /// <summary>
-        /// 持有一个视频源
-        /// </summary>
-        /// <param name="handler">视频源指针</param>
-        public VideoSource(IntPtr handler, IDispatcher dispatcher) : base(handler)
+        internal VideoSource(IntPtr handler) : base(handler)
         {
-            Dispatcher = dispatcher;
             NativeDataReady = val => OnDataReady(val);
         }
         /// <summary>
@@ -29,11 +17,6 @@ namespace WebrtcSharp
         /// C++持有的视频数据监听回调
         /// </summary>
         private WebrtcUnityResultCallback NativeDataReady;
-        /// <summary>
-        /// 同步执行
-        /// </summary>
-        public IDispatcher Dispatcher { get; }
-
         /// <summary>
         /// 私有的收到视频帧事件
         /// </summary>
@@ -57,21 +40,27 @@ namespace WebrtcSharp
         /// <summary>
         /// 添加监听器
         /// </summary>
-        private void AddSink()
+        protected virtual void AddSink()
         {
             if (sink != null) return;
-            IntPtr ptr = default;
-            Dispatcher.Invoke(() => ptr = VideoSource_AddSink(Handler, NativeDataReady));
+            IntPtr ptr = VideoSource_AddSink(Handler, NativeDataReady);
             if (ptr == IntPtr.Zero) throw new Exception("AddSink C++ Error");
-            sink = new WebrtcObject(ptr);
+            sink = new WebrtcObjectRef(ptr, "VideoSource Sink");
         }
         /// <summary>
         /// 删除监听器
         /// </summary>
-        private void RemoveSink()
+        protected virtual void RemoveSink()
+        {
+            RemoveSinkPrviate();
+        }
+        /// <summary>
+        /// 删除监听器
+        /// </summary>
+        private void RemoveSinkPrviate()
         {
             if (sink == null) return;
-            Dispatcher.Invoke(() => VideoSource_RemoveSink(Handler, sink.Handler));
+            VideoSource_RemoveSink(Handler, sink.Handler);
             sink = null;
         }
         /// <summary>
@@ -80,8 +69,8 @@ namespace WebrtcSharp
         public override void Release()
         {
             if (Handler == IntPtr.Zero) return;
-            RemoveSink();
-            Dispatcher.Invoke(() => base.Release());
+            RemoveSinkPrviate();
+            base.Release();
         }
         /// <summary>
         /// 处理收到的视频帧

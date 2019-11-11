@@ -12,7 +12,7 @@ namespace WebrtcSharp
         /// 持有一个媒体发送器
         /// </summary>
         /// <param name="handler">媒体发送器指针</param>
-        public RtpSender(IntPtr handler) : base(handler) { }
+        internal protected RtpSender(IntPtr handler) : base(handler) { }
         /// <summary>
         /// 发送的媒体轨道
         /// </summary>

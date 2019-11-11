@@ -34,6 +34,7 @@ namespace Relywisdom
         {
             var index = GetVideoIndexByName(source);
             var caps = PeerConnectionFactory.GetDeviceCapabilities(index);
+            /*
             var matchs = caps.Where(c => c.VideoType == VideoType.I420).ToArray();
             if (matchs.Length > 0) caps = matchs;
             VideoDeviceCapabilities cap = null;
@@ -44,7 +45,10 @@ namespace Relywisdom
                 Height = 480,
                 Fps = 30
             };
-            return createVideoTrack(createVideoSource(source, cap.Width - 1, cap.Height - 1, 15) ?? createFrameVideoSource());
+            return createVideoTrack(Facotry.CreateVideoSource(index, cap.Width - 1, cap.Height - 1, 15) ?? new FrameVideoSource());
+            */
+            var video = Facotry.CreateVideoSource(index, 640, 480, 30);
+            return createVideoTrack(video);
         }
 
         /// <summary>
@@ -118,23 +122,6 @@ namespace Relywisdom
             var index = GetVideoIndexByName(name);
             return Facotry.CreateVideoSource(index, width, height, fps);
         }
-        /// <summary>
-        /// 创建逐帧视频源
-        /// </summary>
-        /// <returns>视频源</returns>
-        public static FrameVideoSource createFrameVideoSource()
-        {
-            return Facotry.CreateFrameVideoSource();
-        }
-        /// <summary>
-        /// 创建逐帧音频源
-        /// </summary>
-        /// <returns>音频源</returns>
-        public static FrameAudioSource createFrameAudioSource()
-        {
-            return Facotry.CreateFrameAudioSource();
-        }
-
         private static int GetVideoIndexByName(string name)
         {
             var devices = getVideoDevices();

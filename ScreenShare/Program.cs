@@ -29,8 +29,9 @@ namespace ScreenShare
                     { "type", "device" }
                 });
 
-            /* 
+            //* 
             var videoSource = new LocalMediaSource("video");
+            //videoSource.source = "WN_L7501_V1";
             //screen-capture-recorder无法正常工作
             //videoSource.source = "screen-capture-recorder";
             /*/

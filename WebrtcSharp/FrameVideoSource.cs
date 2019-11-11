@@ -15,7 +15,7 @@ namespace WebrtcSharp
         /// <summary>
         /// 创建一个自由写入帧的视频源
         /// </summary>
-        public FrameVideoSource(IDispatcher dispatcher) : base(FrameVideoSource_new(), dispatcher) { }
+        public FrameVideoSource() : base(FrameVideoSource_new()) { }
         /// <summary>
         /// 发送视频帧
         /// </summary>

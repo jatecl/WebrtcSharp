@@ -3,6 +3,7 @@
 
 VideoObserver::~VideoObserver()
 {
+	std::unique_lock<std::mutex> lock(mutex);
 	OnI420FrameReady = nullptr;
 }
 
@@ -64,6 +65,7 @@ void AudioObserver::OnData(const void* audio_data, int bits_per_sample, int samp
 }
 
 AudioObserver::~AudioObserver() {
+	std::unique_lock<std::mutex> lock(mutex);
 	OnDataReady = nullptr;
 }
 
@@ -181,7 +183,7 @@ void* VideoSource_AddSink(void* ptr, WebrtcUnityResultCallback onI420FrameReady)
 	auto observer = new rtc::RefCountedObject<VideoObserver>();
 	observer->OnI420FrameReady = onI420FrameReady;
 
-	webrtc::VideoTrackSource* videoTrack = (webrtc::VideoTrackSource*)(ptr);
+	webrtc::VideoTrackSourceInterface* videoTrack = (webrtc::VideoTrackSourceInterface*)(ptr);
 	videoTrack->AddOrUpdateSink(observer, rtc::VideoSinkWants());
 
 	observer->AddRef();
@@ -190,7 +192,7 @@ void* VideoSource_AddSink(void* ptr, WebrtcUnityResultCallback onI420FrameReady)
 
 void VideoSource_RemoveSink(void* ptr, void* sink)
 {
-	auto track = (webrtc::VideoTrackSource*)(ptr);
+	auto track = (webrtc::VideoTrackSourceInterface*)(ptr);
 	auto sinkTyped = (VideoObserver*)sink;
 	track->RemoveSink(sinkTyped);
 	sinkTyped->OnI420FrameReady = nullptr;

@@ -26,7 +26,7 @@ namespace WebrtcSharp
         /// 持有一个媒体轨道
         /// </summary>
         /// <param name="handler">媒体轨道指针</param>
-        public MediaStreamTrack(IntPtr handler, IDispatcher dispatcher) : base(handler)
+        internal protected MediaStreamTrack(IntPtr handler, IDispatcher dispatcher) : base(handler)
         {
             this.Dispatcher = dispatcher;
         }

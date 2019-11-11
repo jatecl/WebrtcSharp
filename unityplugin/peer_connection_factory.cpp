@@ -87,7 +87,7 @@ void* PeerConnectionFactory_new()
 	ptr->worker_thread = rtc::Thread::Create();
 	ptr->worker_thread->SetName("worker_thread", nullptr);
 	ptr->worker_thread->Start();
-	ptr->signaling_thread = rtc::Thread::Create();
+	ptr->signaling_thread = rtc::Thread::CreateWithSocketServer();
 	ptr->signaling_thread->SetName("signaling_thread", nullptr);
 	ptr->signaling_thread->Start();
 

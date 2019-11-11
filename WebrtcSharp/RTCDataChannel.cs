@@ -38,12 +38,12 @@ namespace WebrtcSharp
         /// 持有一个数据通道
         /// </summary>
         /// <param name="handler">数据通道指针</param>
-        public RTCDataChannel(IntPtr handler) : base(handler)
+        internal protected RTCDataChannel(IntPtr handler) : base(handler)
         {
             _stateChange = () => this.OnStateChange();
             _message = buffer => this.OnMessage(buffer);
             _bufferedAmoutChange = state => this.OnBufferedAmoutChange(state);
-            this.observer = new WebrtcObject(RTCDataChannel_RegisterObserver(handler, _stateChange, _message, _bufferedAmoutChange));
+            this.observer = new WebrtcObjectRef(RTCDataChannel_RegisterObserver(handler, _stateChange, _message, _bufferedAmoutChange), "RTCDataChannel Observer");
         }
         /// <summary>
         /// buffered amout change
