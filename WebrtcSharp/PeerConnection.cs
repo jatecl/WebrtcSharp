@@ -252,7 +252,7 @@ namespace WebrtcSharp
         public RtpSender AddTrack(MediaStreamTrack track, string[] labels)
         {
             var handler = PeerConnection_AddTrack(Handler, track.Handler, labels, labels.Length);
-            var sender = UniqueNative<RtpSender>(handler);
+            var sender = UniqueNative<RtpSender>(handler, () => new RtpSender(handler));
             if (sender != null) sender.Track = track;
             return sender;
         }
@@ -271,7 +271,7 @@ namespace WebrtcSharp
             while (*items != null)
             {
                 IntPtr senderPtr = new IntPtr(*items);
-                var sender = UniqueNative<RtpSender>(senderPtr);
+                var sender = UniqueNative<RtpSender>(senderPtr, () => new RtpSender(senderPtr));
                 if (sender != null) ret.Add(sender);
                 ++items;
             }

@@ -66,17 +66,6 @@ namespace WebrtcSharp
         /// <typeparam name="T">对象类型</typeparam>
         /// <param name="handler">指针</param>
         /// <returns>如果指针为空，就返回空；否则返回对应的对象</returns>
-        public static T UniqueNative<T>(IntPtr handler) where T : WebrtcObject
-        {
-            if (handler == IntPtr.Zero) return null;
-            return UniqueNative(handler, () => (T)Activator.CreateInstance(typeof(T), handler));
-        }
-        /// <summary>
-        /// 创建一个指针对象
-        /// </summary>
-        /// <typeparam name="T">对象类型</typeparam>
-        /// <param name="handler">指针</param>
-        /// <returns>如果指针为空，就返回空；否则返回对应的对象</returns>
         public static T UniqueNative<T>(IntPtr handler, Func<T> creator) where T : WebrtcObject
         {
             if (handler == IntPtr.Zero) return null;
