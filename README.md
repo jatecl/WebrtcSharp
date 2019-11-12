@@ -1,6 +1,5 @@
-# WebrtcSharp
+ï»¿# WebrtcSharp
 Webrtc .Net API
-
 
   ```C#
     var factory = new PeerConnectionFactory();
@@ -9,26 +8,38 @@ Webrtc .Net API
     var connection = factory.CreatePeerConnection(configuration);
     connection.IceCandidate += iceCandidate =>
     {
-        connection.AddIceCandidate(iceCandidate);
+      //å‘é€ iceCandidate
     };
     var offer = await connection.CreateOffer();
     // any more...
   ```
 
+éŸ³è§†é¢‘æ¥å£
+
+  ```C#
+    var videoSource = new FrameVideoSource();
+    var videoTrack = factory.CreateVideoTrack("video_label", videoSource);
+    connection.AddTrack(videoTrack, new string[] { });
+    videoSource.SendFrame(new VideoFrame()
+    {
+      //åˆå§‹åŒ–YUV420æ ¼å¼çš„è§†é¢‘å¸§
+    });
+  ```
+
 Demo
-  Ê×´ÎÔËĞĞÊ±£¬Òª¸üĞÂnode_modules
+  é¦–æ¬¡è¿è¡Œæ—¶ï¼Œè¦æ›´æ–°node_modules
   ```
     cd rtcclient
     start npm install
     cd ..\rtcserver
     start npm install
   ```
-  ÔËĞĞÆğĞÅÁî·şÎñÆ÷ºÍ¿Í»§¶Ë£º
+  è¿è¡Œèµ·ä¿¡ä»¤æœåŠ¡å™¨å’Œå®¢æˆ·ç«¯ï¼š
   ```
     cd rtcclient
     start npm test
     cd ..\rtcserver
     start npm test
   ```
-  ´ò¿ªä¯ÀÀÆ÷ http://localhost:8080/#/share/view/test-room
-  È»ºó´ò¿ª²¢ÔËĞĞ ScreenShare\ScreenShare.csproj
+  æ‰“å¼€æµè§ˆå™¨ http://localhost:8080/#/share/view/test-room
+  ç„¶åæ‰“å¼€å¹¶è¿è¡Œ ScreenShare\ScreenShare.csproj
