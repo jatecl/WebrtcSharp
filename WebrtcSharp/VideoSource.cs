@@ -45,7 +45,7 @@ namespace WebrtcSharp
             if (sink != null) return;
             IntPtr ptr = VideoSource_AddSink(Handler, NativeDataReady);
             if (ptr == IntPtr.Zero) throw new Exception("AddSink C++ Error");
-            sink = new WebrtcObjectRef(ptr, "VideoSource Sink");
+            sink = new WebrtcObjectUnref(ptr, "VideoSource Sink");
         }
         /// <summary>
         /// 删除监听器

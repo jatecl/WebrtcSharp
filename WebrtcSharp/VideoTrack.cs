@@ -58,7 +58,7 @@ namespace WebrtcSharp
             IntPtr ptr = default;
             Dispatcher.Invoke(() => ptr = VideoTrack_AddSink(Handler, NativeDataReady));
             if (ptr == IntPtr.Zero) throw new Exception("AddSink C++ Error");
-            sink = new WebrtcObjectRef(ptr, "VideoTrack Sink");
+            sink = new WebrtcObjectUnref(ptr, "VideoTrack Sink");
         }
         /// <summary>
         /// 删除监听器

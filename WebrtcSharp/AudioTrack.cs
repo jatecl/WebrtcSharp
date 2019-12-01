@@ -49,7 +49,7 @@ namespace WebrtcSharp
             IntPtr ptr = default;
             Dispatcher.Invoke(() => ptr = AudioTrack_AddSink(Handler, DataReadyCallback));
             if (ptr == IntPtr.Zero) throw new Exception("AddSink C++ Error");
-            sink = new WebrtcObjectRef(ptr, "AudioTrack Sink");
+            sink = new WebrtcObjectUnref(ptr, "AudioTrack Sink");
         }
         /// <summary>
         /// 从C++移除监听器

@@ -166,6 +166,7 @@ namespace WebrtcSharp
         {
             fixed (byte* ptr = data)
             {
+                if (Handler == null) return;
                 RTCDataChannel_Send(Handler, true, new IntPtr(ptr + start), length);
             }
         }

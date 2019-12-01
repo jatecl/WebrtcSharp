@@ -271,7 +271,11 @@ namespace WebrtcSharp
             while (*items != null)
             {
                 IntPtr senderPtr = new IntPtr(*items);
-                var sender = UniqueNative<RtpSender>(senderPtr, () => new RtpSender(senderPtr));
+                var sender = UniqueNative<RtpSender>(senderPtr, () =>
+                {
+                    WebrtcObject_AddRef(senderPtr);
+                    return new RtpSender(senderPtr);
+                });
                 if (sender != null) ret.Add(sender);
                 ++items;
             }

@@ -67,7 +67,13 @@ namespace WebrtcSharp
         /// <param name="handler">数据接收器指针</param>
         internal protected RtpReceiver(IntPtr handler, IDispatcher dispatcher) : base(handler)
         {
-            var track = RtpReceiver_GetMediaStreamTrack(handler);
+            IntPtr track = default;
+            dispatcher.Invoke(() =>
+            {
+                WebrtcObject_AddRef(handler);
+                track = RtpReceiver_GetMediaStreamTrack(handler);
+            });
+            Dispatcher = dispatcher;
             if (track == IntPtr.Zero) throw new Exception("无法获取媒体轨道");
             IntPtr proxyPtr = default;
             dispatcher.Invoke(() => proxyPtr = MediaStreamTrack.MediaStreamTrack_GetKind(track));
@@ -87,12 +93,24 @@ namespace WebrtcSharp
                 }
             }
             NativeFirstPacketReceived = state => FirstPacketReceived?.Invoke((MediaType)state);
-            RtpReceiver_SetFirstPacketReceivedObserve(handler, NativeFirstPacketReceived);
+            dispatcher.Invoke(() => RtpReceiver_SetFirstPacketReceivedObserve(handler, NativeFirstPacketReceived));
+        }
+        /// <summary>
+        /// 同步销毁
+        /// </summary>
+        public override void Release()
+        {
+            Dispatcher.Invoke(() => base.Release());
         }
         /// <summary>
         /// 接收到的媒体轨道
         /// </summary>
         public MediaStreamTrack Track { get; }
+        /// <summary>
+        /// 同步执行器
+        /// </summary>
+        public IDispatcher Dispatcher { get; }
+
         /// <summary>
         /// 当第一个数据包收到时发生
         /// </summary>

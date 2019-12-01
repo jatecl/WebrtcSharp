@@ -53,7 +53,7 @@ namespace WebrtcSharp
             if (sink != null) return;
             IntPtr ptr = AudioSource_AddSink(Handler, DataReadyCallback);
             if (ptr == IntPtr.Zero) throw new Exception("AddSink C++ Error");
-            sink = new WebrtcObjectRef(ptr, "AudioSource Sink");
+            sink = new WebrtcObjectUnref(ptr, "AudioSource Sink");
         }
         /// <summary>
         /// 从C++移除监听器

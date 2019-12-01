@@ -13,6 +13,11 @@ void VideoObserver::OnFrame(const webrtc::VideoFrame& frame)
 	if (!OnI420FrameReady)
 		return;
 
+	void* ptr = frame.video_frame_buffer().get();
+
+	if (sizeof(ptr) == 8 && ptr == (void*)0xffffffffffffffff) return;
+	if (sizeof(ptr) == 4 && ptr == (void*)0xffffffff) return;
+
 	rtc::scoped_refptr<webrtc::VideoFrameBuffer> buffer(
 		frame.video_frame_buffer());
 
@@ -186,7 +191,7 @@ void* VideoSource_AddSink(void* ptr, WebrtcUnityResultCallback onI420FrameReady)
 	webrtc::VideoTrackSourceInterface* videoTrack = (webrtc::VideoTrackSourceInterface*)(ptr);
 	videoTrack->AddOrUpdateSink(observer, rtc::VideoSinkWants());
 
-	observer->AddRef();
+	//observer->AddRef();
 	return observer;
 }
 
@@ -207,7 +212,7 @@ void* AudioSource_AddSink(void* ptr, WebrtcUnityResultCallback onDataReady)
 		(webrtc::AudioSourceInterface*)(ptr);
 	audioTrack->AddSink(observer);
 
-	observer->AddRef();
+	//observer->AddRef();
 	return observer;
 }
 
@@ -227,7 +232,7 @@ void* VideoTrack_AddSink(void* ptr, WebrtcUnityResultCallback onI420FrameReady)
 	webrtc::VideoTrackInterface* videoTrack = (webrtc::VideoTrackInterface*)(ptr);
 	videoTrack->AddOrUpdateSink(observer, rtc::VideoSinkWants());
 
-	observer->AddRef();
+	//observer->AddRef();
 	return observer;
 }
 
@@ -248,7 +253,7 @@ void* AudioTrack_AddSink(void* ptr, WebrtcUnityResultCallback onDataReady)
 		(webrtc::AudioTrackInterface*)(ptr);
 	audioTrack->AddSink(observer);
 
-	observer->AddRef();
+	//observer->AddRef();
 	return observer;
 }
 

@@ -114,6 +114,12 @@ namespace WebrtcSharp
         /// <returns></returns>
         [DllImport(UnityPluginDll)] internal static extern IntPtr WebrtcObject_delete(IntPtr ptr);
         /// <summary>
+        /// C++ API：添加引用计数
+        /// </summary>
+        /// <param name="ptr"></param>
+        /// <returns></returns>
+        [DllImport(UnityPluginDll)] internal static extern IntPtr WebrtcObject_AddRef(IntPtr ptr);
+        /// <summary>
         /// C++ API所在dll
         /// </summary>
         public const string UnityPluginDll = "unityplugin.dll";
@@ -134,4 +140,24 @@ namespace WebrtcSharp
         /// </summary>
         public string Discription { get; }
     }
+    /// <summary>
+    /// 命名的dll指针对象，无销毁过程
+    /// </summary>
+    internal class WebrtcObjectUnref : WebrtcObject
+    {
+        public WebrtcObjectUnref(IntPtr handler, string desc) : base(handler)
+        {
+            this.Discription = desc;
+        }
+
+        public override void Release()
+        {
+            //base.Release();
+        }
+
+        /// <summary>
+        /// 简单描述
+        /// </summary>
+        public string Discription { get; }
+    }    
 }

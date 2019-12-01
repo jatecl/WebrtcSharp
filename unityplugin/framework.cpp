@@ -8,6 +8,13 @@ void WebrtcObject_delete(void* ptr)
 	obj->Release();
 }
 
+void WebrtcObject_AddRef(void* ptr)
+{
+	if (!ptr) return;
+	auto obj = (rtc::RefCountInterface*)(ptr);
+	obj->AddRef();
+}
+
 void* PointerArray_GetBuffer(void* ptr)
 {
 	auto typed = (BytesBuffer*)(ptr);

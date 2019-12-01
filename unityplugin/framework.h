@@ -43,6 +43,8 @@ typedef void (*WebrtcUnityResult2Callback)(void* val, void* val2);
 extern "C" {
 	//删除对象引用
 	__declspec(dllexport) void WebrtcObject_delete(void* ptr);
+	//删除对象引用
+	__declspec(dllexport) void WebrtcObject_AddRef(void* ptr);
 	//返回字节数组的指针
 	__declspec(dllexport) void* PointerArray_GetBuffer(void* ptr);
 	//拉取视频设备信息
