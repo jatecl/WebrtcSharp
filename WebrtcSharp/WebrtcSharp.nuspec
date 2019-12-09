@@ -2,14 +2,14 @@
 <package >
   <metadata>
     <id>WebrtcSharp</id>
-    <version>1.0.1.2</version>
+    <version>1.0.1.3</version>
     <title>WebrtcSharp</title>
     <authors>Jatecl</authors>
     <owners>Jatecl</owners>
     <projectUrl>https://github.com/jatecl/WebrtcSharp</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Webrtc binding library for Windows x64</description>
-    <releaseNotes>解决了RtpSender不能被创建的bug。</releaseNotes>
+    <releaseNotes>解决了指针重复释放的问题。</releaseNotes>
     <copyright>Copyright 2019 Jatecl</copyright>
     <tags>WebrtcSharp Webrtc Webrtc.net</tags>
     <dependencies>
