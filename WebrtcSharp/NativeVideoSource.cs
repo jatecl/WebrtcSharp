@@ -21,20 +21,22 @@ namespace WebrtcSharp
             Dispatcher = dispatcher;
         }
 
-        public IDispatcher Dispatcher { get; }
-
+        public IDispatcher Dispatcher { get; private set; }
         protected override void AddSink()
         {
+            if (Handler == IntPtr.Zero) return;
             Dispatcher.Invoke(() => base.AddSink());
         }
 
         protected override void RemoveSink()
         {
+            if (Handler == IntPtr.Zero) return;
             Dispatcher.Invoke(() => base.RemoveSink());
         }
 
         public override void Release()
         {
+            if (Handler == IntPtr.Zero) return;
             Dispatcher.Invoke(() => base.Release());
         }
     }

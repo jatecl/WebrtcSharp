@@ -3,13 +3,13 @@
 
 VideoObserver::~VideoObserver()
 {
-	std::unique_lock<std::mutex> lock(mutex);
+	//std::unique_lock<std::mutex> lock(mutex);
 	OnI420FrameReady = nullptr;
 }
 
 void VideoObserver::OnFrame(const webrtc::VideoFrame& frame)
 {
-	std::unique_lock<std::mutex> lock(mutex);
+	//std::unique_lock<std::mutex> lock(mutex);
 	if (!OnI420FrameReady)
 		return;
 
@@ -56,7 +56,7 @@ void VideoObserver::OnFrame(const webrtc::VideoFrame& frame)
 
 void AudioObserver::OnData(const void* audio_data, int bits_per_sample, int sample_rate, size_t number_of_channels, size_t number_of_frames)
 {
-	std::unique_lock<std::mutex> lock(mutex);
+	//std::unique_lock<std::mutex> lock(mutex);
 	if (!OnDataReady)
 		return;
 
@@ -70,7 +70,7 @@ void AudioObserver::OnData(const void* audio_data, int bits_per_sample, int samp
 }
 
 AudioObserver::~AudioObserver() {
-	std::unique_lock<std::mutex> lock(mutex);
+	//std::unique_lock<std::mutex> lock(mutex);
 	OnDataReady = nullptr;
 }
 
@@ -103,7 +103,7 @@ void FrameVideoSource::NewFrame(const uint8_t* data_y,
 	uint32_t height,
 	int rotation,
 	int64_t timestamp) {
-	std::unique_lock<std::mutex> lock(mutex);
+	//std::unique_lock<std::mutex> lock(mutex);
 	webrtc::VideoFrame::Builder buider;
 	if (data_a == nullptr && stride_a == 0) {
 		rtc::scoped_refptr<webrtc::I420BufferInterface> buffer =
@@ -145,7 +145,7 @@ void FrameAudioSource::OnData(const void* audio_data,
 	int sample_rate,
 	size_t number_of_channels,
 	size_t number_of_frames) {
-	rtc::CritScope lock(&sink_lock_);
+	//rtc::CritScope lock(&sink_lock_);
 	for (webrtc::AudioTrackSinkInterface* s : sinks) {
 		if (s == nullptr)
 			continue;

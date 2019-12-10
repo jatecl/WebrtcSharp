@@ -25,16 +25,19 @@ namespace WebrtcSharp
 
         protected override void AddSink()
         {
+            if (Handler == IntPtr.Zero) return;
             Dispatcher.Invoke(() => base.AddSink());
         }
 
         protected override void RemoveSink()
         {
+            if (Handler == IntPtr.Zero) return;
             Dispatcher.Invoke(() => base.RemoveSink());
         }
 
         public override void Release()
         {
+            if (Handler == IntPtr.Zero) return;
             Dispatcher.Invoke(() => base.Release());
         }
     }

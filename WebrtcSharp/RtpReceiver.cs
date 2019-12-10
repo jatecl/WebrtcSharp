@@ -100,6 +100,7 @@ namespace WebrtcSharp
         /// </summary>
         public override void Release()
         {
+            if (Handler == IntPtr.Zero) return;
             Dispatcher.Invoke(() => base.Release());
         }
         /// <summary>
