@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -23,22 +24,23 @@ namespace WebCamera
 
         private void OpenCamera()
         {
-            source?.Release();
             if (source != null) source.Frame -= Source_Frame;
+            source?.Release();
             source = factory.CreateVideoSource(cameraIndex, 1600, 1200, 30);
             if (source == null) return;
             source.Frame += Source_Frame;
         }
 
-        protected override void OnClosed(EventArgs e)
+        protected override void OnClosing(CancelEventArgs e)
         {
-            source?.Release();
-            if (source != null) source.Frame -= Source_Frame;
-            base.OnClosed(e);
+            if (source != null)
+            {
+                source.Frame -= Source_Frame;
+                source.Release();
+                source = null;
+            }
+            base.OnClosing(e);
         }
-
-        [DllImport("gdi32.dll")]
-        private extern static bool DeleteObject(IntPtr hObject);
 
         /// <summary>
         /// 计算YUV420视频帧占用的内存大小
@@ -72,27 +74,13 @@ namespace WebCamera
                 Buffer.MemoryCopy(obj.DataV.ToPointer(), (byte*)yuvImg.Data.ToPointer() + lenY + lenU, lenV, lenV);
                 if (lenA > 0) Buffer.MemoryCopy(obj.DataA.ToPointer(), (byte*)yuvImg.Data.ToPointer() + lenY + lenU + lenV, lenA, lenA);
             }
-            using (var target = new OpenCvSharp.Mat())
+            var target = new OpenCvSharp.Mat();
+            OpenCvSharp.Cv2.CvtColor(yuvImg, target, OpenCvSharp.ColorConversionCodes.YUV2BGRA_I420);
+            Dispatcher.BeginInvoke((Action)(() =>
             {
-                OpenCvSharp.Cv2.CvtColor(yuvImg, target, OpenCvSharp.ColorConversionCodes.YUV2BGRA_I420);
-                using (var bitmap = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(target))
-                {
-                    IntPtr myImagePtr = bitmap.GetHbitmap();
-                    try
-                    {
-                        Dispatcher.Invoke(() =>
-                        {
-
-                            var imgsource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(myImagePtr, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());  //创建imgSource
-                            display.Source = imgsource;
-                        });
-                    }
-                    finally
-                    {
-                        if (myImagePtr != IntPtr.Zero) DeleteObject(myImagePtr);
-                    }
-                }
-            }
+                display.Source = OpenCvSharp.Extensions.BitmapSourceConverter.ToBitmapSource(target);
+                target.Dispose();
+            }));
         }
 
         private VideoSource source;

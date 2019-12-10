@@ -2,14 +2,14 @@
 <package >
   <metadata>
     <id>WebrtcSharp</id>
-    <version>1.0.1.4</version>
+    <version>1.0.1.5</version>
     <title>WebrtcSharp</title>
     <authors>Jatecl</authors>
     <owners>Jatecl</owners>
     <projectUrl>https://github.com/jatecl/WebrtcSharp</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>适用于x64的.Net Webrtc Api</description>
-    <releaseNotes>解决了回调函数可能被垃圾回收销毁的问题。</releaseNotes>
+    <releaseNotes>解决重复调用Release的指针问题</releaseNotes>
     <copyright>Copyright 2019 Jatecl</copyright>
     <tags>WebrtcSharp Webrtc Webrtc.net</tags>
     <dependencies>
