@@ -99,37 +99,42 @@ namespace WebrtcSharp
             bool use_rtp_mux = true)
         {
             var holder = new UnmanageHolder();
-            var offer = await Promise<string>.Await((cs, ce) =>
+            try
             {
-                WebrtcUnityResult2Callback done = (type, sdp) =>
+                return await Promise<string>.Await((cs, ce) =>
                 {
-                    unsafe
+                    WebrtcUnityResult2Callback done = (type, sdp) =>
                     {
-                        //var strType = new string((sbyte*)type.ToPointer());
-                        var strSdp = new string((sbyte*)sdp.ToPointer());
-                        cs(strSdp);
-                    }
-                };
-                WebrtcUnityResultCallback error = msg =>
-                {
-                    unsafe
+                        unsafe
+                        {
+                            //var strType = new string((sbyte*)type.ToPointer());
+                            var strSdp = new string((sbyte*)sdp.ToPointer());
+                            cs(strSdp);
+                        }
+                    };
+                    WebrtcUnityResultCallback error = msg =>
                     {
-                        ce(new Exception(new string((sbyte*)msg.ToPointer())));
-                    }
-                };
-                holder.Hold(done, error);
-                PeerConnection_CreateOffer(Handler,
-                    done,
-                    error,
-                    true,
-                    true,
-                    voice_activity_detection,
-                    ice_restart,
-                    use_rtp_mux);
+                        unsafe
+                        {
+                            ce(new Exception(new string((sbyte*)msg.ToPointer())));
+                        }
+                    };
+                    holder.Hold(done, error);
+                    PeerConnection_CreateOffer(Handler,
+                        done,
+                        error,
+                        true,
+                        true,
+                        voice_activity_detection,
+                        ice_restart,
+                        use_rtp_mux);
 
-            });
-            holder.StillHere();
-            return offer;
+                });
+            }
+            finally
+            {
+                holder.Release();
+            }
         }
         /// <summary>
         /// 创建Answer
@@ -144,37 +149,42 @@ namespace WebrtcSharp
             bool use_rtp_mux = true)
         {
             var holder = new UnmanageHolder();
-            var answer = await Promise<string>.Await((cs, ce) =>
+            try
             {
-                WebrtcUnityResult2Callback done = (type, sdp) =>
+                return await Promise<string>.Await((cs, ce) =>
                 {
-                    unsafe
+                    WebrtcUnityResult2Callback done = (type, sdp) =>
                     {
-                        //var strType = new string((sbyte*)type.ToPointer());
-                        var strSdp = new string((sbyte*)sdp.ToPointer());
-                        cs(strSdp);
-                    }
-                };
-                WebrtcUnityResultCallback error = msg =>
-                {
-                    unsafe
+                        unsafe
+                        {
+                            //var strType = new string((sbyte*)type.ToPointer());
+                            var strSdp = new string((sbyte*)sdp.ToPointer());
+                            cs(strSdp);
+                        }
+                    };
+                    WebrtcUnityResultCallback error = msg =>
                     {
-                        ce(new Exception(new string((sbyte*)msg.ToPointer())));
-                    }
-                };
-                holder.Hold(done, error);
-                PeerConnection_CreateAnswer(Handler,
-                    done,
-                    error,
-                    true,
-                    true,
-                    voice_activity_detection,
-                    ice_restart,
-                    use_rtp_mux);
+                        unsafe
+                        {
+                            ce(new Exception(new string((sbyte*)msg.ToPointer())));
+                        }
+                    };
+                    holder.Hold(done, error);
+                    PeerConnection_CreateAnswer(Handler,
+                        done,
+                        error,
+                        true,
+                        true,
+                        voice_activity_detection,
+                        ice_restart,
+                        use_rtp_mux);
 
-            });
-            holder.StillHere();
-            return answer;
+                });
+            }
+            finally
+            {
+                holder.Release();
+            }
         }
         /// <summary>
         /// 设置远程描述
@@ -185,25 +195,31 @@ namespace WebrtcSharp
         public async Task SetRemoteDescription(string type, string sdp)
         {
             var holder = new UnmanageHolder();
-            await Promise.Await((cs, ce) =>
+            try
             {
-                WebrtcUnityCallback done = () => cs();
-                WebrtcUnityResultCallback error = msg =>
+                await Promise.Await((cs, ce) =>
                 {
-                    unsafe
+                    WebrtcUnityCallback done = () => cs();
+                    WebrtcUnityResultCallback error = msg =>
                     {
-                        ce(new Exception(new string((sbyte*)msg.ToPointer())));
-                    }
-                };
-                holder.Hold(done, error);
-                PeerConnection_SetRemoteDescription(Handler,
-                    type,
-                    sdp,
-                    done,
-                    error);
+                        unsafe
+                        {
+                            ce(new Exception(new string((sbyte*)msg.ToPointer())));
+                        }
+                    };
+                    holder.Hold(done, error);
+                    PeerConnection_SetRemoteDescription(Handler,
+                        type,
+                        sdp,
+                        done,
+                        error);
 
-            });
-            holder.StillHere();
+                });
+            }
+            finally
+            {
+                holder.Release();
+            }
         }
         /// <summary>
         /// 设置本地描述
@@ -214,25 +230,31 @@ namespace WebrtcSharp
         public async Task SetLocalDescription(string type, string sdp)
         {
             var holder = new UnmanageHolder();
-            await Promise.Await((cs, ce) =>
+            try
             {
-                WebrtcUnityCallback done = () => cs();
-                WebrtcUnityResultCallback error = msg =>
+                await Promise.Await((cs, ce) =>
                 {
-                    unsafe
+                    WebrtcUnityCallback done = () => cs();
+                    WebrtcUnityResultCallback error = msg =>
                     {
-                        ce(new Exception(new string((sbyte*)msg.ToPointer())));
-                    }
-                };
-                holder.Hold(done, error);
-                PeerConnection_SetLocalDescription(Handler,
-                    type,
-                    sdp,
-                    done,
-                    error);
+                        unsafe
+                        {
+                            ce(new Exception(new string((sbyte*)msg.ToPointer())));
+                        }
+                    };
+                    holder.Hold(done, error);
+                    PeerConnection_SetLocalDescription(Handler,
+                        type,
+                        sdp,
+                        done,
+                        error);
 
-            });
-            holder.StillHere();
+                });
+            }
+            finally
+            {
+                holder.Release();
+            }
         }
         /// <summary>
         /// 添加对方发过来的IceCandidate

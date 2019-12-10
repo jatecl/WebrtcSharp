@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace WebrtcSharp
 {
@@ -8,23 +9,35 @@ namespace WebrtcSharp
     public class UnmanageHolder
     {
         /// <summary>
-        /// 用户保存对象的列表
+        /// 保持列表
         /// </summary>
-        private readonly List<object> Holder = new List<object>();
+        private static readonly List<UnmanageHolder> holders = new List<UnmanageHolder>();
+        /// <summary>
+        /// 要保持的对象列表
+        /// </summary>
+        private readonly List<object> holding = new List<object>();
+        /// <summary>
+        /// 创建保持器
+        /// </summary>
+        public UnmanageHolder()
+        {
+            lock (holders) holders.Add(this);
+        }
         /// <summary>
         /// 持有对象使其不被销毁
         /// </summary>
-        /// <param name="list">对象列表</param>
-        public void Hold(params object[] list)
+        /// <param name="list"
+        internal void Hold(params object[] list)
         {
-            Holder.AddRange(list);
+            holding.AddRange(list);
         }
         /// <summary>
         /// 告诉编译器和运行时，我还在呢，别回收我
         /// </summary>
-        public void StillHere()
+        public void Release()
         {
-            this.Holder.Add("still here");
+            this.holding.Clear();
+            lock (holders) holders.Remove(this);
         }
     }
 }

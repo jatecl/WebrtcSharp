@@ -172,11 +172,17 @@ namespace WebrtcSharp
             public void Invoke(Action action)
             {
                 if (factory.Handler == IntPtr.Zero) return;
-                WebrtcUnityCallback native = () => action();
                 var holder = new UnmanageHolder();
-                holder.Hold(native);
-                PeerConnectionFactory_SignalingThreadInvoke(factory.Handler, native);
-                holder.StillHere();
+                try
+                {
+                    WebrtcUnityCallback native = () => action();
+                    holder.Hold(native);
+                    PeerConnectionFactory_SignalingThreadInvoke(factory.Handler, native);
+                }
+                finally
+                {
+                    holder.Release();
+                }
             }
             /// <summary>
             /// C++ API：在信令线程上执行
